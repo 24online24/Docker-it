@@ -26,8 +26,7 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("GoDocker Containers")
 	w.Resize(fyne.NewSize(600, 500))
-	widget.NewLabel("Containter ID	Container NAME")
-	var data [][]string
+	var data = [][]string{{"Containter ID", "Container NAME"}}
 	for _, container := range containers {
 		temp := make([]string, 0)
 		temp = append(temp, container.ID[:10])
