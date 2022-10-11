@@ -4,6 +4,10 @@ import (
 	"context"
 	"fmt"
 
+	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/widget"
+
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
 )
@@ -19,7 +23,30 @@ func main() {
 		panic(err)
 	}
 
+	a := app.New()
+	w := a.NewWindow("GoDocker Containers")
+	w.Resize(fyne.NewSize(600, 500))
+	widget.NewLabel("Containter ID	Container NAME")
+	var data [][]string
 	for _, container := range containers {
-		fmt.Printf("%s %s\n", container.ID[:10], container.Image)
+		temp := make([]string, 0)
+		temp = append(temp, container.ID[:10])
+		temp = append(temp, container.Image)
+		data = append(data, temp)
+		fmt.Println(container.ID[:10] + " " + container.Image)
 	}
+
+	list := widget.NewTable(
+		func() (int, int) {
+			return len(data), len(data[0])
+		},
+		func() fyne.CanvasObject {
+			return widget.NewLabel("wide content")
+		},
+		func(i widget.TableCellID, o fyne.CanvasObject) {
+			o.(*widget.Label).SetText(data[i.Row][i.Col])
+		})
+
+	w.SetContent(list)
+	w.ShowAndRun()
 }
