@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -26,11 +27,17 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("GoDocker Containers")
 	w.Resize(fyne.NewSize(600, 500))
-	var data = [][]string{{"Containter ID", "Container NAME"}}
+	var data = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"}}
 	for _, container := range containers {
 		temp := make([]string, 0)
 		temp = append(temp, container.ID[:10])
 		temp = append(temp, container.Image)
+		temp = append(temp, container.Command)
+		temp = append(temp, strconv.Itoa(int(container.Created)))
+		temp = append(temp, container.Status)
+		temp = append(temp, container.Status)
+		temp = append(temp, container.Names...)
+		// temp = append(temp, strconv.Itoa(container.port))
 		data = append(data, temp)
 		fmt.Println(container.ID[:10] + " " + container.Image)
 	}
