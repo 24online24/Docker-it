@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -23,12 +22,14 @@ func main() {
 		panic(err)
 	}
 
-	a := app.New()
-	w := a.NewWindow("GoDocker Containers")
-	w.Resize(fyne.NewSize(600, 500))
-	var data = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"}}
+	var a fyne.App = app.New()
+	var w fyne.Window = a.NewWindow("GoDocker Containers")
+	w.Resize(fyne.NewSize(1600, 900))
+	// w.SetFullScreen(true)
+	// var data = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND"}}
+	var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"}}
 	for _, container := range containers {
-		temp := make([]string, 0)
+		var temp []string = make([]string, 0)
 		temp = append(temp, container.ID[:10])
 		temp = append(temp, container.Image)
 		temp = append(temp, container.Command)
@@ -52,21 +53,35 @@ func main() {
 
 		temp = append(temp, container.Names...)
 		data = append(data, temp)
-		fmt.Println(temp)
+		// fmt.Println(temp)
 
 	}
 
-	list := widget.NewTable(
+	runningContainersTable := widget.NewTable(
 		func() (int, int) {
 			return len(data), len(data[0])
 		},
 		func() fyne.CanvasObject {
-			return widget.NewLabel("wide content")
+			tab := widget.NewLabel("wide content")
+			return tab
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
 			o.(*widget.Label).SetText(data[i.Row][i.Col])
 		})
 
-	w.SetContent(list)
+	/*
+		For every column we check every row for the longest entry (string).
+		We then format the column according to the longest entry.
+	*/
+	for column := 0; column < len(data[0]); column++ {
+		var maxCharLen int = 0
+		for row := 0; row < len(data); row++ {
+			if len(data[row][column]) > maxCharLen {
+				maxCharLen = len(data[row][column])
+			}
+		}
+		runningContainersTable.SetColumnWidth(column, 50+float32(maxCharLen)*7)
+	}
+	w.SetContent(runningContainersTable)
 	w.ShowAndRun()
 }
