@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strconv"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
@@ -35,8 +36,19 @@ func main() {
 		// temp = append(temp, container.Names...)
 		// data = append(data, temp)
 		// fmt.Println(container.ID[:10] + " " + container.Image)
-		fmt.Println(container.Ports)
-
+		for _, port := range container.Ports {
+			if len(port.IP) > 0 {
+				fmt.Print(port.IP + ":")
+			}
+			if port.PublicPort != 0 {
+				fmt.Print(strconv.Itoa(int(port.PublicPort)) + "->")
+			}
+			fmt.Print(strconv.Itoa(int(port.PrivatePort)))
+			fmt.Print("/" + port.Type)
+			fmt.Print("\t\t")
+		}
+		// fmt.Print(container.Ports)
+		fmt.Println()
 	}
 
 	// list := widget.NewTable(
