@@ -13,7 +13,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
-func main() {
+func main1() {
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		panic(err)
