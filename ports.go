@@ -47,6 +47,9 @@ func main() {
 			portString += strconv.Itoa(int(port.PrivatePort)) + "/" + port.Type
 			if index < len(container.Ports)-1 {
 				portString += ", "
+				if index%2 == 1 {
+					portString += "\n"
+				}
 			}
 		}
 		temp = append(temp, portString)
