@@ -26,11 +26,12 @@ func main() {
 	a := app.New()
 	w := a.NewWindow("GoDocker Containers")
 	w.Resize(fyne.NewSize(600, 500))
-	var data = [][]string{{"Containter ID", "Container NAME"}}
+	var data = [][]string{{"Containter ID", "Container IMAGE", "Container STATUS & UPTIME"}}
 	for _, container := range containers {
 		temp := make([]string, 0)
 		temp = append(temp, container.ID[:10])
 		temp = append(temp, container.Image)
+		temp = append(temp, container.Status)
 		data = append(data, temp)
 		fmt.Println(container.ID[:10] + " " + container.Image)
 	}
@@ -40,11 +41,15 @@ func main() {
 			return len(data), len(data[0])
 		},
 		func() fyne.CanvasObject {
-			return widget.NewLabel("wide content")
+			tab := widget.NewLabel("wide content")
+			return tab
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
 			o.(*widget.Label).SetText(data[i.Row][i.Col])
 		})
+	for i := 0; i < len(data); i++ {
+		list.SetColumnWidth(i, 200)
+	}
 
 	w.SetContent(list)
 	w.ShowAndRun()
