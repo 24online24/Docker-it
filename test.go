@@ -26,7 +26,7 @@ func main() {
 
 	a := app.New()
 	w := a.NewWindow("GoDocker Containers")
-	w.Resize(fyne.NewSize(600, 500))
+	w.Resize(fyne.NewSize(700, 500))
 	var data = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"}}
 	for _, container := range containers {
 		temp := make([]string, 0)
@@ -54,7 +54,7 @@ func main() {
 			o.(*widget.Label).SetText(data[i.Row][i.Col])
 		})
 	for i := 0; i < len(data); i++ {
-		list.SetColumnWidth(i, 200)
+		list.SetColumnWidth(i, 100)
 	}
 
 	w.SetContent(list)
