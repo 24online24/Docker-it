@@ -31,8 +31,10 @@ func main() {
 			container.NewVBox(showRunningContainersButton),
 			container.NewVBox(showRunningContainersButton),
 		),
-		container.NewVBox(showRunningContainersButton),
-		container.NewVBox(showRunningContainersButton),
+		container.NewVBox(
+			container.NewVBox(showRunningContainersButton),
+			container.NewVBox(showRunningContainersButton),
+		),
 	)
 	w.SetContent(mainMenu)
 	w.ShowAndRun()
