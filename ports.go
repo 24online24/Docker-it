@@ -25,8 +25,14 @@ func main() {
 		showRunningContainers(w, cli)
 	})
 
-	var mainMenu *fyne.Container = container.NewVBox(
-		showRunningContainersButton,
+	var mainMenu *fyne.Container = container.NewAdaptiveGrid(
+		2,
+		container.NewVBox(
+			container.NewVBox(showRunningContainersButton),
+			container.NewVBox(showRunningContainersButton),
+		),
+		container.NewVBox(showRunningContainersButton),
+		container.NewVBox(showRunningContainersButton),
 	)
 	w.SetContent(mainMenu)
 	w.ShowAndRun()

@@ -1,4 +1,4 @@
-module testProiect
+module GoDocker
 
 go 1.18
 
