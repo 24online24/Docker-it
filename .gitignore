@@ -4,8 +4,6 @@
 *.dll
 *.so
 *.dylib
-testProiect
-GoDocker
 # Test binary, built with `go test -c`
 *.test
 
