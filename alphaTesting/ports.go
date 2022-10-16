@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"log"
+	"os/exec"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -33,11 +35,9 @@ func main() {
 		2,
 		container.NewVBox(
 			container.NewVBox(showRunningContainersButton),
-			container.NewVBox(showRunningContainersButton),
 		),
 		container.NewVBox(
 			container.NewVBox(createComposeFileButton),
-			container.NewVBox(showRunningContainersButton),
 		),
 	)
 	w.SetContent(mainMenu)
@@ -50,7 +50,7 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 	if err != nil {
 		panic(err)
 	}
-	var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES"}}
+	var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
 	for _, container := range containers {
 		var temp []string = make([]string, 0)
 		temp = append(temp, container.ID[:10])
@@ -75,6 +75,7 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 		temp = append(temp, portString)
 
 		temp = append(temp, container.Names...)
+		temp = append(temp, "OPEN")
 		data = append(data, temp)
 	}
 
@@ -88,7 +89,8 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 		},
 		func(i widget.TableCellID, o fyne.CanvasObject) {
 			o.(*widget.Label).SetText(data[i.Row][i.Col])
-		})
+		},
+	)
 
 	for column := 0; column < len(data[0]); column++ {
 		var maxCharLen int = 0
@@ -99,5 +101,18 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 		}
 		runningContainersTable.SetColumnWidth(column, 50+float32(maxCharLen)*7)
 	}
+
+	runningContainersTable.OnSelected = func(i widget.TableCellID) {
+		if i.Col == 7 && i.Row > 0 {
+			// fmt.Println(data[i.Row][0])
+			cmd := exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+			err := cmd.Run()
+			if err != nil {
+				log.Fatal(err)
+			}
+		}
+		runningContainersTable.UnselectAll()
+	}
+
 	w.SetContent(runningContainersTable)
 }
