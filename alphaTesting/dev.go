@@ -2,8 +2,10 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"os/exec"
+	"runtime"
 	"strconv"
 	"time"
 
@@ -52,7 +54,8 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 
 func showRunningContainers(w fyne.Window, cli *client.Client) {
 	go func() {
-		for range time.Tick(time.Second) {
+		var showing bool = true
+		for showing {
 			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 			if err != nil {
 				panic(err)
@@ -101,17 +104,36 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 			}
 			runningContainersTable.OnSelected = func(i widget.TableCellID) {
 				if i.Col == 7 && i.Row > 0 {
-					cmd := exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+					var cmd *exec.Cmd
+					if runtime.GOOS == "windows" {
+						cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+					} else if runtime.GOOS == "linux" {
+						testcmd := exec.Command("command", "-v", "gnome-terminal")
+						testerr := testcmd.Run()
+						if testerr == nil {
+							cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+						} else {
+							testcmd := exec.Command("command", "-v", "konsole")
+							testerr := testcmd.Run()
+							if testerr == nil {
+								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							}
+						}
+					} else {
+						fmt.Println("Bozo")
+					}
 					err := cmd.Run()
 					if err != nil {
 						log.Fatal(err)
 					}
 				} else {
+					showing = false
 					showMainMenu(w, cli)
 				}
 				runningContainersTable.UnselectAll()
 			}
 			w.SetContent(runningContainersTable)
+			time.Sleep(time.Second)
 		}
 	}()
 }
