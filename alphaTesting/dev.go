@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"runtime"
 	"strconv"
+	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
@@ -40,10 +41,27 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		showRunningContainers(w, cli)
 	})
 
+	var runDockerButton *widget.Button = widget.NewButton("Start Docker Service", func() {
+		go is_docker_started()
+		var cmd *exec.Cmd
+		if runtime.GOOS == "windows" {
+			cmd = exec.Command("C:/Program Files/Docker/Docker/Docker Desktop.exe")
+		} else if runtime.GOOS == "linux" {
+			cmd = exec.Command("systemctl", "start", "docker")
+		} else {
+			cmd = exec.Command("open", "-a", "Docker")
+		}
+		out, err := cmd.CombinedOutput()
+		fmt.Printf("%s\n", out)
+		if err != nil {
+			fmt.Printf("Alrdy started! %s\n", err)
+		}
+	})
+
 	var mainMenu *fyne.Container = container.NewAdaptiveGrid(
 		2,
 		container.NewVBox(
-			container.NewVBox(showRunningContainersButton),
+			container.NewVBox(runDockerButton, showRunningContainersButton),
 		),
 		container.NewVBox(
 			container.NewVBox(createComposeFileButton),
@@ -136,4 +154,22 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 			time.Sleep(time.Second)
 		}
 	}()
+}
+
+func is_docker_started() {
+	for {
+		cmd := exec.Command("docker", "stats")
+		out, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Printf("error: %v\n", err)
+		}
+
+		if strings.Contains(string(out), "error during connect:") {
+			fmt.Println("DOCKER NOT STARTED (yet)")
+		} else {
+			fmt.Println("DOCKER STARTED")
+			break
+		}
+
+	}
 }
