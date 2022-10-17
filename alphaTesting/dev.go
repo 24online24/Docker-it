@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os/exec"
 	"strconv"
@@ -26,6 +25,11 @@ func main() {
 	var w fyne.Window = a.NewWindow("GoDocker Containers")
 	w.Resize(fyne.NewSize(1600, 900))
 
+	showMainMenu(w, cli)
+	w.ShowAndRun()
+}
+
+func showMainMenu(w fyne.Window, cli *client.Client) {
 	var showRunningContainersButton *widget.Button = widget.NewButton("Running containers", func() {
 		showRunningContainers(w, cli)
 	})
@@ -44,7 +48,6 @@ func main() {
 		),
 	)
 	w.SetContent(mainMenu)
-	w.ShowAndRun()
 }
 
 func showRunningContainers(w fyne.Window, cli *client.Client) {
@@ -54,13 +57,9 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 			if err != nil {
 				panic(err)
 			}
-			fmt.Println()
 			var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
 			for _, container := range containers {
-				fmt.Print(container.ID[:10] + "\t\t")
-				var temp []string = make([]string, 0)
-
-				portString := ""
+				var portString string = ""
 				for index, port := range container.Ports {
 					if len(port.IP) > 0 {
 						portString += port.IP + ":"
@@ -73,17 +72,18 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 						portString += ", "
 					}
 				}
-
-				temp = append(temp, container.ID[:10], container.Image, container.Command,
-					strconv.Itoa(int(container.Created)), container.Status, portString, container.Names[0], "OPEN")
-				data = append(data, temp)
+				data = append(data, []string{
+					container.ID[:10], container.Image, container.Command,
+					strconv.Itoa(int(container.Created)), container.Status,
+					portString, container.Names[0], "OPEN",
+				})
 			}
 			runningContainersTable := widget.NewTable(
 				func() (int, int) {
 					return len(data), len(data[0])
 				},
 				func() fyne.CanvasObject {
-					tab := widget.NewLabel("wide content")
+					tab := widget.NewLabel("")
 					return tab
 				},
 				func(i widget.TableCellID, o fyne.CanvasObject) {
@@ -106,10 +106,11 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 					if err != nil {
 						log.Fatal(err)
 					}
+				} else {
+					showMainMenu(w, cli)
 				}
 				runningContainersTable.UnselectAll()
 			}
-
 			w.SetContent(runningContainersTable)
 		}
 	}()
