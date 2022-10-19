@@ -95,7 +95,7 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 				}
 				data = append(data, []string{
 					container.ID[:10], container.Image, container.Command,
-					strconv.Itoa(int(container.Created)), container.Status,
+					strconv.Itoa(int(time.Now().Unix() - container.Created)), container.Status,
 					portString, container.Names[0], "OPEN",
 				})
 			}
