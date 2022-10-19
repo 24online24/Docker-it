@@ -3,6 +3,7 @@ module GoDocker
 go 1.18
 
 require (
+	fyne.io/fyne v1.4.3
 	fyne.io/fyne/v2 v2.2.3
 	github.com/docker/docker v20.10.18+incompatible
 )

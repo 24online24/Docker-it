@@ -40,9 +40,13 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 	var createComposeFileButton *widget.Button = widget.NewButton("Create Docker Compose file", func() {
 		showRunningContainers(w, cli)
 	})
-
+	ch := make(chan int)
+	// go numbers(ch)
+	go isDockerStarted(ch)
+	// for x := range ch {
+	// 	fmt.Println(x)
+	// }
 	var runDockerButton *widget.Button = widget.NewButton("Start Docker Service", func() {
-		go is_docker_started()
 		var cmd *exec.Cmd
 		if runtime.GOOS == "windows" {
 			cmd = exec.Command("C:/Program Files/Docker/Docker/Docker Desktop.exe")
@@ -51,20 +55,34 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		} else {
 			cmd = exec.Command("open", "-a", "Docker")
 		}
-		out, err := cmd.CombinedOutput()
-		fmt.Printf("%s\n", out)
+		err := cmd.Run()
+		// out, err := cmd.CombinedOutput()
+		// fmt.Printf("%s\n", out)
 		if err != nil {
-			fmt.Printf("Alrdy started! %s\n", err)
+			log.Fatal(err)
+			// fmt.Printf("Alrdy started! %s\n", err)
 		}
 	})
+	var isDockerStartedLabel *widget.Label = widget.NewLabel("")
 
+	go func() {
+		for running := range ch {
+			if running == 3 {
+				// isDockerStartedLabel.SetText("Docker is running! :)")
+				fmt.Println("Docker is running! :)")
+			} else {
+				// isDockerStartedLabel.SetText("Docker is not running! :(")
+				fmt.Println("Docker is not running! :(")
+			}
+		}
+	}()
 	var mainMenu *fyne.Container = container.NewAdaptiveGrid(
 		2,
 		container.NewVBox(
 			container.NewVBox(runDockerButton, showRunningContainersButton),
 		),
 		container.NewVBox(
-			container.NewVBox(createComposeFileButton),
+			container.NewVBox(isDockerStartedLabel, createComposeFileButton),
 		),
 	)
 	w.SetContent(mainMenu)
@@ -156,20 +174,27 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 	}()
 }
 
-func is_docker_started() {
+// Background check to see if Docker is started or not
+func isDockerStarted(ch chan int) {
+	x := 0
 	for {
 		cmd := exec.Command("docker", "stats")
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			fmt.Printf("error: %v\n", err)
+			// fmt.Printf("error: %v\n", err)
+			// ch <- false
+			x = 1
 		}
-
 		if strings.Contains(string(out), "error during connect:") {
-			fmt.Println("DOCKER NOT STARTED (yet)")
+			// fmt.Println("DOCKER NOT STARTED (yet)")
+			// ch <- false
+			x = 2
 		} else {
-			fmt.Println("DOCKER STARTED")
-			break
+			// fmt.Println("DOCKER STARTED")
+			// ch <- true
+			x = 3
 		}
-
+		ch <- x
+		// fmt.Print("Mau!")
 	}
 }
