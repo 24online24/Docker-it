@@ -67,15 +67,17 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		}
 	}()
 
-	// Button that changes the view to that of the running containers
+	// Changes the view to that of the running containers
 	var showRunningContainersButton *widget.Button = widget.NewButton("Running containers", func() {
 		showRunningContainers(w, cli)
 	})
 
+	// Changes the view to the docker-compose.yml creation windows
 	var createComposeFileButton *widget.Button = widget.NewButton("Create Docker Compose file", func() {
 		showRunningContainers(w, cli)
 	})
 
+	// Menu organized in 2 columns
 	var mainMenu *fyne.Container = container.NewAdaptiveGrid(
 		2,
 		container.NewVBox(
@@ -192,5 +194,6 @@ func isDockerStarted(ch chan int) {
 			x = 3
 		}
 		ch <- x
+		time.Sleep(time.Second)
 	}
 }
