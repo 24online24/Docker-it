@@ -33,19 +33,7 @@ func main() {
 }
 
 func showMainMenu(w fyne.Window, cli *client.Client) {
-	var showRunningContainersButton *widget.Button = widget.NewButton("Running containers", func() {
-		showRunningContainers(w, cli)
-	})
-
-	var createComposeFileButton *widget.Button = widget.NewButton("Create Docker Compose file", func() {
-		showRunningContainers(w, cli)
-	})
-	ch := make(chan int)
-	// go numbers(ch)
-	go isDockerStarted(ch)
-	// for x := range ch {
-	// 	fmt.Println(x)
-	// }
+	// Button that starts Docker if it is not started already
 	var runDockerButton *widget.Button = widget.NewButton("Start Docker Service", func() {
 		var cmd *exec.Cmd
 		if runtime.GOOS == "windows" {
@@ -55,27 +43,38 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		} else {
 			cmd = exec.Command("open", "-a", "Docker")
 		}
-		err := cmd.Run()
-		// out, err := cmd.CombinedOutput()
-		// fmt.Printf("%s\n", out)
+		out, err := cmd.CombinedOutput()
+		fmt.Printf("%s\n", out)
 		if err != nil {
 			log.Fatal(err)
-			// fmt.Printf("Alrdy started! %s\n", err)
+			fmt.Printf("Alrdy started! %s\n", err)
 		}
 	})
-	var isDockerStartedLabel *widget.Label = widget.NewLabel("")
 
+	var isDockerStartedLabel *widget.Label = widget.NewLabel("")
+	ch := make(chan int)
+	go isDockerStarted(ch)
 	go func() {
 		for running := range ch {
 			if running == 3 {
-				// isDockerStartedLabel.SetText("Docker is running! :)")
+				isDockerStartedLabel.SetText("Docker is running! :)")
 				fmt.Println("Docker is running! :)")
 			} else {
-				// isDockerStartedLabel.SetText("Docker is not running! :(")
+				isDockerStartedLabel.SetText("Docker is not running! :(")
 				fmt.Println("Docker is not running! :(")
 			}
 		}
 	}()
+
+	// Button that changes the view to that of the running containers
+	var showRunningContainersButton *widget.Button = widget.NewButton("Running containers", func() {
+		showRunningContainers(w, cli)
+	})
+
+	var createComposeFileButton *widget.Button = widget.NewButton("Create Docker Compose file", func() {
+		showRunningContainers(w, cli)
+	})
+
 	var mainMenu *fyne.Container = container.NewAdaptiveGrid(
 		2,
 		container.NewVBox(
@@ -88,6 +87,9 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 	w.SetContent(mainMenu)
 }
 
+// View that shows the currently running Docker containers. It is refreshed once
+// every second and allows the user to open a terminal directly connected
+// to a container.
 func showRunningContainers(w fyne.Window, cli *client.Client) {
 	go func() {
 		var showing bool = true
@@ -182,16 +184,13 @@ func isDockerStarted(ch chan int) {
 		out, err := cmd.CombinedOutput()
 		if err != nil {
 			// fmt.Printf("error: %v\n", err)
-			// ch <- false
 			x = 1
 		}
 		if strings.Contains(string(out), "error during connect:") {
 			// fmt.Println("DOCKER NOT STARTED (yet)")
-			// ch <- false
 			x = 2
 		} else {
 			// fmt.Println("DOCKER STARTED")
-			// ch <- true
 			x = 3
 		}
 		ch <- x
