@@ -51,6 +51,7 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		}
 	})
 
+	// Label showing the current status of Docker
 	var isDockerStartedLabel *widget.Label = widget.NewLabel("")
 	ch := make(chan int)
 	go isDockerStarted(ch)
@@ -180,20 +181,16 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 func isDockerStarted(ch chan int) {
 	x := 0
 	for {
-		cmd := exec.Command("docker", "stats")
+		cmd := exec.Command("docker", "ps")
 		out, err := cmd.CombinedOutput()
 		if err != nil {
-			// fmt.Printf("error: %v\n", err)
 			x = 1
 		}
 		if strings.Contains(string(out), "error during connect:") {
-			// fmt.Println("DOCKER NOT STARTED (yet)")
 			x = 2
 		} else {
-			// fmt.Println("DOCKER STARTED")
 			x = 3
 		}
 		ch <- x
-		// fmt.Print("Mau!")
 	}
 }
