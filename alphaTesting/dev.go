@@ -188,7 +188,8 @@ func isDockerStarted(ch chan int) {
 		if err != nil {
 			x = 1
 		}
-		if strings.Contains(string(out), "error during connect:") {
+		if strings.Contains(string(out), "error during connect:") ||
+			strings.Contains(string(out), "Cannot connect to the Docker daemon") {
 			x = 2
 		} else {
 			x = 3
