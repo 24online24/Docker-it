@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"os/exec"
 	"runtime"
@@ -43,11 +42,11 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		} else {
 			cmd = exec.Command("open", "-a", "Docker")
 		}
-		out, err := cmd.CombinedOutput()
-		fmt.Printf("%s\n", out)
+		err := cmd.Run()
+		// fmt.Printf("%s\n", out)
 		if err != nil {
 			log.Fatal(err)
-			fmt.Printf("Alrdy started! %s\n", err)
+			// fmt.Printf("Alrdy started! %s\n", err)
 		}
 	})
 
@@ -59,10 +58,10 @@ func showMainMenu(w fyne.Window, cli *client.Client) {
 		for running := range ch {
 			if running == 3 {
 				isDockerStartedLabel.SetText("Docker is running! :)")
-				fmt.Println("Docker is running! :)")
+				// fmt.Println("Docker is running! :)")
 			} else {
 				isDockerStartedLabel.SetText("Docker is not running! :(")
-				fmt.Println("Docker is not running! :(")
+				// fmt.Println("Docker is not running! :(")
 			}
 		}
 	}()
@@ -160,9 +159,10 @@ func showRunningContainers(w fyne.Window, cli *client.Client) {
 								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
 							}
 						}
-					} else {
-						fmt.Println("Bozo")
 					}
+					// else {
+					// 	fmt.Println("Bozo")
+					// }
 					err := cmd.Run()
 					if err != nil {
 						log.Fatal(err)
