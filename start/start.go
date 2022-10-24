@@ -59,7 +59,7 @@ func check_daemon() bool {
 	return true
 }
 
-func isDockerStarted(ch chan int) {
+func isDockerStarted(chDockerStarted chan int) {
 	x := 0
 	for {
 		cmd := exec.Command("docker", "ps")
@@ -74,8 +74,91 @@ func isDockerStarted(ch chan int) {
 			x = 3
 		}
 		time.Sleep(time.Second)
-		ch <- x
+		chDockerStarted <- x
 	}
+}
+
+func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.Client) {
+	go func() {
+		for {
+			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+			if err != nil {
+				panic(err)
+			}
+			var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
+			for _, container := range containers {
+				var portString string = ""
+				for index, port := range container.Ports {
+					if len(port.IP) > 0 {
+						portString += port.IP + ":"
+					}
+					if port.PublicPort != 0 {
+						portString += strconv.Itoa(int(port.PublicPort)) + "->"
+					}
+					portString += strconv.Itoa(int(port.PrivatePort)) + "/" + port.Type
+					if index < len(container.Ports)-1 {
+						portString += ", "
+					}
+				}
+				data = append(data, []string{
+					container.ID[:10], container.Image, container.Command,
+					strconv.Itoa(int(time.Now().Unix() - container.Created)), container.Status,
+					portString, container.Names[0], "OPEN",
+				})
+			}
+			runningContainersTable := widget.NewTable(
+				func() (int, int) {
+					return len(data), len(data[0])
+				},
+				func() fyne.CanvasObject {
+					tab := widget.NewLabel("")
+					return tab
+				},
+				func(i widget.TableCellID, o fyne.CanvasObject) {
+					o.(*widget.Label).SetText(data[i.Row][i.Col])
+				},
+			)
+			for column := 0; column < len(data[0]); column++ {
+				var maxCharLen int = 0
+				for row := 0; row < len(data); row++ {
+					if len(data[row][column]) > maxCharLen {
+						maxCharLen = len(data[row][column])
+					}
+				}
+				runningContainersTable.SetColumnWidth(column, 50+float32(maxCharLen)*7)
+			}
+			runningContainersTable.OnSelected = func(i widget.TableCellID) {
+				if i.Col == 7 && i.Row > 0 {
+					var cmd *exec.Cmd
+					if runtime.GOOS == "windows" {
+						cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+					} else if runtime.GOOS == "linux" {
+						testcmd := exec.Command("command", "-v", "gnome-terminal")
+						testerr := testcmd.Run()
+						if testerr == nil {
+							cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+						} else {
+							testcmd := exec.Command("command", "-v", "konsole")
+							testerr := testcmd.Run()
+							if testerr == nil {
+								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							}
+						}
+					}
+					// else {
+					// 	fmt.Println("Bozo")
+					// }
+					err := cmd.Run()
+					if err != nil {
+						log.Fatal(err)
+					}
+				}
+				runningContainersTable.UnselectAll()
+			}
+			chRunningContainers <- runningContainersTable
+			time.Sleep(time.Second)
+		}
+	}()
 }
 
 func main() {
@@ -104,13 +187,13 @@ func main() {
 		}
 	})
 
-	ch := make(chan int)
-	go isDockerStarted(ch)
+	chDockerStarted := make(chan int)
+	go isDockerStarted(chDockerStarted)
 	go func() {
-		for running := range ch {
+		for running := range chDockerStarted {
 			if running == 3 {
 				dockerd_status.SetText("Docker is running! :)")
-				fmt.Println("Docker is running! :)")
+				// fmt.Println("Docker is running! :)")
 			} else {
 				dockerd_status.SetText("Docker is not running! :(")
 				fmt.Println("Docker is not running! :(")
@@ -223,6 +306,15 @@ func main() {
 	} else {
 		tabs.Append(container.NewTabItemWithIcon("Containers", theme.MenuIcon(), widget.NewLabel("XDD")))
 	}
+
+	chRunningContainers := make(chan *widget.Table)
+	go showRunningContainers(chRunningContainers, cli)
+	go func() {
+		for table := range chRunningContainers {
+			tabs.Items[1].Content = table
+		}
+	}()
+
 	// container_compose := container.NewWithoutLayout()
 	// container_settings := container.NewWithoutLayout()
 
