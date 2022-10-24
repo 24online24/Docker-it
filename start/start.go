@@ -37,9 +37,12 @@ func start_daemon(env string) {
 		// cmd := exec.Command("powershell", "Start-Process", "'C:\\Program Files\\Docker\\Docker\\resources\\dockerd.exe'", "-WindowStyle", "Hidden")
 		cmd := exec.Command("C:/Program Files/Docker/Docker/Docker Desktop.exe")
 		go cmd.Run()
-		if check_daemon() == false {
-			fmt.Println("BRUH XD")
-		}
+	} else {
+		cmd := exec.Command("systemctl", "start", "docker")
+		_ = cmd.Run()
+	}
+	if !check_daemon() {
+		fmt.Println("BRUH it didnt start XD")
 	}
 }
 
@@ -77,7 +80,7 @@ func isDockerStarted(ch chan int) {
 
 func main() {
 	env := get_env()
-	fmt.Println("Running in " + env + " mode")
+	fmt.Println("Running in " + env + " mode...")
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
@@ -99,9 +102,8 @@ func main() {
 			// TODO add stop function
 			fmt.Println("daemon already started!")
 		}
-		// cmd2 := exec.Command("powershell", "docker", "image", "ls", ">", "C:\\Users\\Catalin\\Desktop\\commands.txt")
-		// _ = cmd2.Run()
 	})
+
 	ch := make(chan int)
 	go isDockerStarted(ch)
 	go func() {
@@ -141,7 +143,7 @@ func main() {
 	if check_daemon() {
 		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 		if err != nil {
-			fmt.Printf(err.Error())
+			fmt.Println(err.Error())
 		}
 
 		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
