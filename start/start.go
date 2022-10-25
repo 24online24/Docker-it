@@ -81,7 +81,7 @@ func isDockerStarted(chDockerStarted chan int) {
 func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.Client) {
 	go func() {
 		for {
-			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
+			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Limit: 10})
 			if err != nil {
 				panic(err)
 			}
@@ -102,7 +102,7 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 				}
 				data = append(data, []string{
 					container.ID[:10], container.Image, container.Command,
-					strconv.Itoa(int(time.Now().Unix() - container.Created)), container.Status,
+					strconv.Itoa(int(time.Now().Unix()-container.Created)) + " seconds ago", container.Status,
 					portString, container.Names[0], "OPEN",
 				})
 			}
