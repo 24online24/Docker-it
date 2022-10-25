@@ -23,16 +23,18 @@ import (
 	"github.com/docker/docker/client"
 )
 
+var env string
+
 func get_env() string {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
-		return runtime.GOOS
+		env = runtime.GOOS
 	}
 	fmt.Println("Your operating system is not supported by our project. Sorry! D:" + runtime.GOOS)
 	os.Exit(0)
 	return "nope"
 }
 
-func start_daemon(env string) {
+func start_daemon() {
 	if env == "windows" {
 		// cmd := exec.Command("powershell", "Start-Process", "'C:\\Program Files\\Docker\\Docker\\resources\\dockerd.exe'", "-WindowStyle", "Hidden")
 		cmd := exec.Command("C:/Program Files/Docker/Docker/Docker Desktop.exe")
@@ -46,6 +48,20 @@ func start_daemon(env string) {
 	}
 }
 
+func stop_daemon() {
+	if env == "windows" {
+		// cmd := exec.Command("powershell", "Start-Process", "'C:\\Program Files\\Docker\\Docker\\resources\\dockerd.exe'", "-WindowStyle", "Hidden")
+		cmd := exec.Command("taskkill", "/im", "Docker Desktop.exe", "/t", "/f")
+		go cmd.Run()
+	} else {
+		cmd := exec.Command("systemctl", "stop", "docker*")
+		_ = cmd.Run()
+	}
+	if check_daemon() {
+		fmt.Println("BRUH it didnt stop XD")
+	}
+}
+
 func check_daemon() bool {
 	cmd2 := exec.Command("docker", "ps")
 	out, err := cmd2.CombinedOutput()
@@ -54,7 +70,7 @@ func check_daemon() bool {
 		return false
 	}
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 	return true
 }
@@ -81,30 +97,30 @@ func isDockerStarted(chDockerStarted chan int) {
 func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.Client) {
 	go func() {
 		for {
-			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Limit: 10})
-			if err != nil {
-				panic(err)
-			}
 			var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
-			for _, container := range containers {
-				var portString string = ""
-				for index, port := range container.Ports {
-					if len(port.IP) > 0 {
-						portString += port.IP + ":"
+
+			containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Limit: 10})
+			if err == nil {
+				for _, container := range containers {
+					var portString string = ""
+					for index, port := range container.Ports {
+						if len(port.IP) > 0 {
+							portString += port.IP + ":"
+						}
+						if port.PublicPort != 0 {
+							portString += strconv.Itoa(int(port.PublicPort)) + "->"
+						}
+						portString += strconv.Itoa(int(port.PrivatePort)) + "/" + port.Type
+						if index < len(container.Ports)-1 {
+							portString += ", "
+						}
 					}
-					if port.PublicPort != 0 {
-						portString += strconv.Itoa(int(port.PublicPort)) + "->"
-					}
-					portString += strconv.Itoa(int(port.PrivatePort)) + "/" + port.Type
-					if index < len(container.Ports)-1 {
-						portString += ", "
-					}
+					data = append(data, []string{
+						container.ID[:10], container.Image, container.Command,
+						strconv.Itoa(int(time.Now().Unix()-container.Created)) + " seconds ago", container.Status,
+						portString, container.Names[0], "OPEN",
+					})
 				}
-				data = append(data, []string{
-					container.ID[:10], container.Image, container.Command,
-					strconv.Itoa(int(time.Now().Unix()-container.Created)) + " seconds ago", container.Status,
-					portString, container.Names[0], "OPEN",
-				})
 			}
 			runningContainersTable := widget.NewTable(
 				func() (int, int) {
@@ -145,9 +161,6 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 							}
 						}
 					}
-					// else {
-					// 	fmt.Println("Bozo")
-					// }
 					err := cmd.Run()
 					if err != nil {
 						log.Fatal(err)
@@ -162,12 +175,12 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 }
 
 func main() {
-	env := get_env()
+	env = get_env()
 	fmt.Println("Running in " + env + " mode...")
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 
 	var a fyne.App = app.New()
@@ -182,8 +195,7 @@ func main() {
 		if !check_daemon() {
 			start_daemon(env)
 		} else {
-			// TODO add stop function
-			fmt.Println("daemon already started!")
+			stop_daemon(env)
 		}
 	})
 
@@ -193,10 +205,8 @@ func main() {
 		for running := range chDockerStarted {
 			if running == 3 {
 				dockerd_status.SetText("Docker is running! :)")
-				// fmt.Println("Docker is running! :)")
 			} else {
 				dockerd_status.SetText("Docker is not running! :(")
-				fmt.Println("Docker is not running! :(")
 			}
 		}
 	}()
