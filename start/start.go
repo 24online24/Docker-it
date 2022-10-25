@@ -193,9 +193,9 @@ func main() {
 
 	start_button := widget.NewButton("Start/Stop", func() {
 		if !check_daemon() {
-			start_daemon(env)
+			start_daemon()
 		} else {
-			stop_daemon(env)
+			stop_daemon()
 		}
 	})
 
