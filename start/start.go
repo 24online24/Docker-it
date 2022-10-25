@@ -25,13 +25,13 @@ import (
 
 var env string
 
-func get_env() string {
+func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
 		env = runtime.GOOS
+	} else {
+		fmt.Println("Your operating system is not supported by our project. Sorry! D:" + runtime.GOOS)
+		os.Exit(0)
 	}
-	fmt.Println("Your operating system is not supported by our project. Sorry! D:" + runtime.GOOS)
-	os.Exit(0)
-	return "nope"
 }
 
 func start_daemon() {
@@ -175,7 +175,7 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 }
 
 func main() {
-	env = get_env()
+	get_env()
 	fmt.Println("Running in " + env + " mode...")
 
 	cli, err := client.NewClientWithOpts(client.FromEnv)
