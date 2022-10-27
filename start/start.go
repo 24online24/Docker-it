@@ -95,6 +95,27 @@ func isDockerStarted(chDockerStarted chan int) {
 	}
 }
 
+func secondsToString(seconds int) string {
+	var time string = ""
+	if seconds > 60 {
+		var minutes int = seconds / 60
+		seconds %= 60
+		if minutes > 60 {
+			var hours int = minutes / 60
+			minutes = minutes % 60
+			if hours > 24 {
+				var days int = hours / 24
+				hours = hours % 24
+				time = strconv.Itoa(days) + " days "
+			}
+			time = time + strconv.Itoa(hours) + " hours "
+		}
+		time = time + strconv.Itoa(minutes) + " minutes "
+	}
+	time = time + strconv.Itoa(seconds) + " seconds ago"
+	return time
+}
+
 func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "ACTION"}}
@@ -123,7 +144,7 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 
 				data = append(data, []string{
 					container.ID[:10], container.Image, container.Command,
-					strconv.Itoa(int(time.Now().Unix()-container.Created)) + " seconds ago", container.Status,
+					secondsToString(int(time.Now().Unix() - container.Created)), container.Status,
 					portString, container.Names[0], actionName,
 				})
 			}
@@ -147,7 +168,7 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 					maxCharLen = len(data[row][column])
 				}
 			}
-			runningContainersTable.SetColumnWidth(column, 50+float32(maxCharLen)*7)
+			runningContainersTable.SetColumnWidth(column, 40+float32(maxCharLen)*7)
 		}
 		runningContainersTable.OnSelected = func(i widget.TableCellID) {
 			if i.Col == 7 && i.Row > 0 {
