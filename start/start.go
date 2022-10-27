@@ -50,7 +50,6 @@ func start_daemon() {
 
 func stop_daemon() {
 	if env == "windows" {
-		// cmd := exec.Command("powershell", "Start-Process", "'C:\\Program Files\\Docker\\Docker\\resources\\dockerd.exe'", "-WindowStyle", "Hidden")
 		cmd := exec.Command("taskkill", "/im", "Docker Desktop.exe", "/t", "/f")
 		go cmd.Run()
 	} else {
@@ -184,7 +183,7 @@ func main() {
 	var a fyne.App = app.New()
 	var w fyne.Window = a.NewWindow("GoDocker Containers")
 
-	start_title := canvas.NewText("#RIPBOZO", color.RGBA{255, 0, 0, 3})
+	start_title := canvas.NewText("GoDocker", color.RGBA{255, 0, 0, 3})
 	start_title.TextSize = 50
 
 	dockerd_status := widget.NewLabel("")
@@ -210,6 +209,7 @@ func main() {
 	}()
 
 	container_start := container.NewVBox(
+		layout.NewSpacer(),
 		container.New(layout.NewCenterLayout(), start_title),
 		layout.NewSpacer(),
 		container.New(layout.NewGridLayoutWithColumns(4),
@@ -225,7 +225,7 @@ func main() {
 			layout.NewSpacer(),
 		),
 		layout.NewSpacer(),
-		container.New(layout.NewCenterLayout(), widget.NewLabel("Guide here!\nAsta se mai centreaza dupa annyway!")),
+		// container.New(layout.NewCenterLayout(), widget.NewLabel("Help")),
 		layout.NewSpacer(),
 	)
 
