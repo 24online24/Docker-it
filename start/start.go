@@ -143,25 +143,36 @@ func showRunningContainers(chRunningContainers chan *widget.Table, cli *client.C
 		}
 		runningContainersTable.OnSelected = func(i widget.TableCellID) {
 			if i.Col == 7 && i.Row > 0 {
+				// TODO could be integrated in a function
 				var cmd *exec.Cmd
-				if runtime.GOOS == "windows" {
-					cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-				} else if runtime.GOOS == "linux" {
-					testcmd := exec.Command("command", "-v", "gnome-terminal")
-					testerr := testcmd.Run()
-					if testerr == nil {
-						cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-					} else {
-						testcmd := exec.Command("command", "-v", "konsole")
+				if strings.Contains(data[i.Row][4], "Up") {
+					fmt.Println("Open")
+					if runtime.GOOS == "windows" {
+						cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+					} else if runtime.GOOS == "linux" {
+						testcmd := exec.Command("command", "-v", "gnome-terminal")
 						testerr := testcmd.Run()
 						if testerr == nil {
-							cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+						} else {
+							testcmd := exec.Command("command", "-v", "konsole")
+							testerr := testcmd.Run()
+							if testerr == nil {
+								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							}
 						}
 					}
-				}
-				err := cmd.Run()
-				if err != nil {
-					log.Fatal(err)
+					err := cmd.Run()
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					fmt.Println("Closed")
+					cmd = exec.Command("docker", "start", data[i.Row][0])
+					err := cmd.Run()
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 			runningContainersTable.UnselectAll()
@@ -240,7 +251,7 @@ func main() {
 		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "TERMINAL"}}
 		for _, container := range containers {
 			var portString string = ""
-			fmt.Printf("THIS IS CONTAINER" + container.Names[0])
+			// fmt.Printf("THIS IS CONTAINER" + container.Names[0])
 			for index, port := range container.Ports {
 				if len(port.IP) > 0 {
 					portString += port.IP + ":"
@@ -287,24 +298,34 @@ func main() {
 			if i.Col == 7 && i.Row > 0 {
 				// TODO could be integrated in a function
 				var cmd *exec.Cmd
-				if runtime.GOOS == "windows" {
-					cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-				} else if runtime.GOOS == "linux" {
-					testcmd := exec.Command("command", "-v", "gnome-terminal")
-					testerr := testcmd.Run()
-					if testerr == nil {
-						cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-					} else {
-						testcmd := exec.Command("command", "-v", "konsole")
+				if strings.Contains(data[i.Row][4], "Up") {
+					fmt.Println("Open")
+					if runtime.GOOS == "windows" {
+						cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+					} else if runtime.GOOS == "linux" {
+						testcmd := exec.Command("command", "-v", "gnome-terminal")
 						testerr := testcmd.Run()
 						if testerr == nil {
-							cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+						} else {
+							testcmd := exec.Command("command", "-v", "konsole")
+							testerr := testcmd.Run()
+							if testerr == nil {
+								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
+							}
 						}
 					}
-				}
-				err := cmd.Run()
-				if err != nil {
-					log.Fatal(err)
+					err := cmd.Run()
+					if err != nil {
+						log.Fatal(err)
+					}
+				} else {
+					fmt.Println("Closed")
+					cmd = exec.Command("docker", "start", data[i.Row][0])
+					err := cmd.Run()
+					if err != nil {
+						log.Fatal(err)
+					}
 				}
 			}
 			container_4containers.UnselectAll()
