@@ -44,20 +44,22 @@ func start_daemon() {
 		_ = cmd.Run()
 	}
 	if !check_daemon() {
-		fmt.Println("BRUH it didnt start XD")
+		fmt.Println("BRUH it didnt start XD yet...")
 	}
 }
 
 func stop_daemon() {
-	if env == "windows" {
-		cmd := exec.Command("taskkill", "/im", "Docker Desktop.exe", "/t", "/f")
-		go cmd.Run()
-	} else {
-		cmd := exec.Command("systemctl", "stop", "docker*")
-		_ = cmd.Run()
-	}
 	if check_daemon() {
-		fmt.Println("BRUH it didnt stop XD")
+		if env == "windows" {
+			cmd := exec.Command("taskkill", "/im", "Docker Desktop.exe", "/t", "/f")
+			cmd.Run()
+		} else {
+			cmd := exec.Command("systemctl", "stop", "docker*")
+			_ = cmd.Run()
+		}
+		if check_daemon() {
+			fmt.Println("BRUH it didnt stop XD")
+		}
 	}
 }
 
@@ -69,7 +71,7 @@ func check_daemon() bool {
 		return false
 	}
 	if err != nil {
-		log.Fatal(err)
+		fmt.Println(err)
 	}
 	return true
 }
