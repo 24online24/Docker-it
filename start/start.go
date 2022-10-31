@@ -106,13 +106,13 @@ func secondsToString(seconds int) string {
 			if hours > 24 {
 				var days int = hours / 24
 				hours = hours % 24
-				time = strconv.Itoa(days) + " days "
+				time = strconv.Itoa(days) + "d "
 			}
-			time = time + strconv.Itoa(hours) + " hours "
+			time = time + strconv.Itoa(hours) + "h "
 		}
-		time = time + strconv.Itoa(minutes) + " minutes "
+		time = time + strconv.Itoa(minutes) + "m "
 	}
-	time = time + strconv.Itoa(seconds) + " seconds ago"
+	time = time + strconv.Itoa(seconds) + "s ago"
 	return time
 }
 
@@ -221,9 +221,9 @@ func main() {
 	}
 
 	var a fyne.App = app.New()
-	var w fyne.Window = a.NewWindow("GoDocker Containers")
+	var w fyne.Window = a.NewWindow("GoDocker")
 
-	start_title := canvas.NewText("GoDocker", color.RGBA{255, 0, 0, 3})
+	start_title := canvas.NewText("GoDocker", color.RGBA{0, 183, 237, 3})
 	start_title.TextSize = 50
 
 	dockerd_status := widget.NewLabel("")
