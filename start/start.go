@@ -24,6 +24,9 @@ import (
 )
 
 var env string
+var terminal_setting string = "wt.exe new-tab powershell -noexit -Command"
+var refresh_rate int = 1
+var docker_path string = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
 
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
@@ -36,8 +39,7 @@ func get_env() {
 
 func start_daemon() {
 	if env == "windows" {
-		// cmd := exec.Command("powershell", "Start-Process", "'C:\\Program Files\\Docker\\Docker\\resources\\dockerd.exe'", "-WindowStyle", "Hidden")
-		cmd := exec.Command("C:/Program Files/Docker/Docker/Docker Desktop.exe")
+		cmd := exec.Command(docker_path)
 		go cmd.Run()
 	} else {
 		cmd := exec.Command("systemctl", "start", "docker")
@@ -90,7 +92,7 @@ func isDockerStarted(chDockerStarted chan int) {
 		} else {
 			x = 3
 		}
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * time.Duration(refresh_rate))
 		chDockerStarted <- x
 	}
 }
@@ -207,7 +209,7 @@ func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 			ContainersTable.UnselectAll()
 		}
 		chContainers <- ContainersTable
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
 
@@ -283,7 +285,7 @@ func showImages(chContainers chan *widget.Table, cli *client.Client) {
 			ContainersTable.UnselectAll()
 		}
 		chContainers <- ContainersTable
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
 
@@ -378,7 +380,7 @@ func showVolumes(chContainers chan *widget.Table, cli *client.Client) {
 			ContainersTable.UnselectAll()
 		}
 		chContainers <- ContainersTable
-		time.Sleep(time.Second)
+		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
 func main() {
@@ -451,14 +453,14 @@ func main() {
 		}
 	}()
 
-	tabs.Append(container.NewTabItemWithIcon("Images", theme.MenuIcon(), widget.NewLabel("")))
-	chImages := make(chan *widget.Table)
-	go showImages(chImages, cli)
-	go func() {
-		for table := range chImages {
-			tabs.Items[2].Content = table
-		}
-	}()
+	// tabs.Append(container.NewTabItemWithIcon("Images", theme.MenuIcon(), widget.NewLabel("")))
+	// chImages := make(chan *widget.Table)
+	// go showImages(chImages, cli)
+	// go func() {
+	// 	for table := range chImages {
+	// 		tabs.Items[2].Content = table
+	// 	}
+	// }()
 
 	tabs.Append(container.NewTabItemWithIcon("Volumes", theme.MenuIcon(), widget.NewLabel("")))
 	chVolumes := make(chan *widget.Table)
@@ -481,6 +483,7 @@ func main() {
 			a.Settings().SetTheme(&white_theme{})
 		}
 	})
+
 	// TODO set to prev selected theme
 	theme_select.SetSelected("dark")
 
@@ -488,6 +491,7 @@ func main() {
 	terminal.SetPlaceHolder("Terminal path/executable goes here...")
 	rrate := widget.NewEntry()
 	rrate.SetPlaceHolder("Number between 1s to 5m...")
+	rrate.Validate()
 
 	container_settings := container.NewHBox(
 		container.NewVBox(
@@ -512,19 +516,35 @@ func main() {
 			),
 			container.New(layout.NewGridLayoutWithColumns(4),
 				layout.NewSpacer(),
-				widget.NewLabel("Refresh rate for containers:"),
+				widget.NewLabel("Refresh rate for containers in seconds:"),
 				rrate,
+				layout.NewSpacer(),
+			),
+			layout.NewSpacer(),
+			container.NewHBox(
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
+					refresh_rate, _ = strconv.Atoi(rrate.Text)
+					// rest go the same way
+				}),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
+					// restore saved data from file
+				}),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
 				layout.NewSpacer(),
 			),
 			layout.NewSpacer(),
 		))
 
-	w.SetIcon(theme.ComputerIcon())
-
 	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), widget.NewLabel("Compose Docker files goes here!")))
 	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), container_settings))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()
+	w.SetIcon(theme.ComputerIcon())
 	w.SetContent(tabs)
 	w.Resize(fyne.NewSize(1080, 720))
 	w.ShowAndRun()
