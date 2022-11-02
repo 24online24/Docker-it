@@ -25,7 +25,7 @@ import (
 )
 
 var env string
-var terminal_setting string = "wt.exe new-tab powershell -noexit -Command"
+var terminal_setting string = ""
 var refresh_rate int = 1
 var docker_path string = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
 
@@ -134,6 +134,49 @@ func niceSizeFormat(bytes int) string {
 	return size
 }
 
+func start_container(status string, data string) {
+	var cmd *exec.Cmd
+	if strings.Contains(status, "Up") {
+		fmt.Println("Open")
+		if runtime.GOOS == "windows" {
+			if terminal_setting == "" {
+				cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data, "/bin/bash")
+			} else {
+				rest := [5]string{"docker", "exec", "-ti", data, "/bin/bash"}
+				cmd_line := strings.Split(terminal_setting, " ")
+				for i := 0; i < 5; i++ {
+					cmd_line = append(cmd_line, rest[i])
+				}
+				cmd = exec.Command("powershell.exe", cmd_line...)
+
+			}
+		} else if runtime.GOOS == "linux" {
+			testcmd := exec.Command("command", "-v", "gnome-terminal")
+			testerr := testcmd.Run()
+			if testerr == nil {
+				cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data, "/bin/bash")
+			} else {
+				testcmd := exec.Command("command", "-v", "konsole")
+				testerr := testcmd.Run()
+				if testerr == nil {
+					cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data, "/bin/bash")
+				}
+			}
+		}
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	} else {
+		fmt.Println("Closed")
+		cmd = exec.Command("docker", "start", data)
+		err := cmd.Run()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
+}
+
 func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "ACTION"}}
@@ -190,37 +233,7 @@ func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 		}
 		ContainersTable.OnSelected = func(i widget.TableCellID) {
 			if i.Col == 7 && i.Row > 0 {
-				// TODO could be integrated in a function
-				var cmd *exec.Cmd
-				if strings.Contains(data[i.Row][4], "Up") {
-					fmt.Println("Open")
-					if runtime.GOOS == "windows" {
-						cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-					} else if runtime.GOOS == "linux" {
-						testcmd := exec.Command("command", "-v", "gnome-terminal")
-						testerr := testcmd.Run()
-						if testerr == nil {
-							cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-						} else {
-							testcmd := exec.Command("command", "-v", "konsole")
-							testerr := testcmd.Run()
-							if testerr == nil {
-								cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data[i.Row][0], "/bin/bash")
-							}
-						}
-					}
-					err := cmd.Run()
-					if err != nil {
-						log.Fatal(err)
-					}
-				} else {
-					fmt.Println("Closed")
-					cmd = exec.Command("docker", "start", data[i.Row][0])
-					err := cmd.Run()
-					if err != nil {
-						log.Fatal(err)
-					}
-				}
+				start_container(data[i.Row][4], data[i.Row][0])
 			}
 			ContainersTable.UnselectAll()
 		}
@@ -416,6 +429,8 @@ func main() {
 
 	terminal := widget.NewEntry()
 	terminal.SetPlaceHolder("Terminal path/executable goes here...")
+	docker_e := widget.NewEntry()
+	docker_e.SetPlaceHolder("Docker Desktop path goes here (Windows only!)")
 	rrate := widget.NewEntry()
 	rrate.SetPlaceHolder("Number between 1s to 5m...")
 	rrate.Validate()
@@ -438,7 +453,7 @@ func main() {
 			container.New(layout.NewGridLayoutWithColumns(4),
 				layout.NewSpacer(),
 				widget.NewLabel("Docker Desktop.exe path (Windows only):"),
-				terminal,
+				docker_e,
 				layout.NewSpacer(),
 			),
 			container.New(layout.NewGridLayoutWithColumns(4),
@@ -454,6 +469,7 @@ func main() {
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
+					terminal_setting = terminal.Text
 					// rest go the same way
 				}),
 				layout.NewSpacer(),
