@@ -37,3 +37,27 @@ func (m darker_than_my_soul) Size(name fyne.ThemeSizeName) float32 {
 }
 
 // TODO implement white theme, the default is deprecated and dosent work properly
+var _ fyne.Theme = (*white_theme)(nil)
+
+func (m white_theme) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+	if name == theme.ColorNameBackground {
+		if variant == theme.VariantLight {
+			return color.White
+		}
+		return color.Black
+	}
+
+	return theme.DefaultTheme().Color(name, variant)
+}
+
+func (m white_theme) Icon(name fyne.ThemeIconName) fyne.Resource {
+	return theme.DefaultTheme().Icon(name)
+}
+
+func (m white_theme) Font(style fyne.TextStyle) fyne.Resource {
+	return theme.DefaultTheme().Font(style)
+}
+
+func (m white_theme) Size(name fyne.ThemeSizeName) float32 {
+	return 15
+}

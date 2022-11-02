@@ -478,7 +478,7 @@ func main() {
 		case "dark+":
 			a.Settings().SetTheme(&darker_than_my_soul{})
 		case "light":
-			a.Settings().SetTheme(theme.LightTheme())
+			a.Settings().SetTheme(&white_theme{})
 		}
 	})
 	// TODO set to prev selected theme
@@ -488,13 +488,13 @@ func main() {
 	terminal.SetPlaceHolder("Terminal path/executable goes here...")
 	rrate := widget.NewEntry()
 	rrate.SetPlaceHolder("Number between 1s to 5m...")
-	// docker path,
+
 	container_settings := container.NewHBox(
 		container.NewVBox(
 			layout.NewSpacer(),
 			container.New(layout.NewGridLayoutWithColumns(4),
 				layout.NewSpacer(),
-				widget.NewLabel("Theme:"),
+				widget.NewLabel("Select your favourite theme:"),
 				theme_select,
 				layout.NewSpacer(),
 			),
