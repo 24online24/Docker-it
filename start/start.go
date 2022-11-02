@@ -248,6 +248,7 @@ func main() {
 		}
 	}()
 
+	// add filter menus, stop container option
 	container_start := container.NewVBox(
 		layout.NewSpacer(),
 		container.New(layout.NewCenterLayout(), start_title),
@@ -281,10 +282,59 @@ func main() {
 	}()
 
 	// container_compose := container.NewWithoutLayout()
-	// container_settings := container.NewWithoutLayout()
+	theme_options := []string{"dark", "dark+", "light"}
+	theme_select := widget.NewSelect(theme_options, func(s string) {
+		switch s {
+		case "dark":
+			a.Settings().SetTheme(theme.DefaultTheme())
+		case "dark+":
+			a.Settings().SetTheme(&darker_than_my_soul{})
+		case "light":
+			a.Settings().SetTheme(theme.LightTheme())
+		}
+	})
+	// TODO set to prev selected theme
+	theme_select.SetSelected("dark")
+
+	terminal := widget.NewEntry()
+	terminal.SetPlaceHolder("Terminal path/executable goes here...")
+	rrate := widget.NewEntry()
+	rrate.SetPlaceHolder("Number between 1s to 5m...")
+	// docker path,
+	container_settings := container.NewHBox(
+		container.NewVBox(
+			layout.NewSpacer(),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Theme:"),
+				theme_select,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Terminal path to executable:"),
+				terminal,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Docker Desktop.exe path (Windows only):"),
+				terminal,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Refresh rate for containers:"),
+				rrate,
+				layout.NewSpacer(),
+			),
+			layout.NewSpacer(),
+		))
+
+	w.SetIcon(theme.ComputerIcon())
 
 	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), widget.NewLabel("Compose Docker files goes here!")))
-	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), widget.NewLabel("Settings goes here!")))
+	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), container_settings))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()
 	w.SetContent(tabs)
