@@ -215,13 +215,13 @@ func showImages(chContainers chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE"}}
 
-		// images, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Limit: 10})
-		images, err := cli.ImageList(context.Background(), types.ImageListOptions{})
+		images, err := cli.ImageList(context.Background(), types.ImageListOptions{All: true})
 		if err == nil {
 			for _, image := range images {
 				data = append(data, []string{
-
-					image.ID, secondsToString(int(time.Now().Unix() - image.Created)), strconv.Itoa(int(image.Size)),
+					strings.Split(image.RepoTags[0], ":")[0], strings.Split(image.RepoTags[0], ":")[1],
+					strings.Split(image.ID, ":")[1][:12], secondsToString(int(time.Now().Unix() - image.Created)),
+					strconv.Itoa(int(image.Size)),
 				})
 			}
 		}
