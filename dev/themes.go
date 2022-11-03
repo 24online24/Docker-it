@@ -59,5 +59,5 @@ func (m white_theme) Font(style fyne.TextStyle) fyne.Resource {
 }
 
 func (m white_theme) Size(name fyne.ThemeSizeName) float32 {
-	return 15
+	return theme.DefaultTheme().Size(name)
 }
