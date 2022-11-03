@@ -49,8 +49,8 @@ func get_settings() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	terminal_setting = str[1]
-	docker_path = str[2]
+	terminal_setting = strings.Trim(str[1], "\r")
+	docker_path = strings.Trim(str[2], "\r")
 	fmt.Println("Settings have been imported succesfully!")
 }
 
@@ -419,7 +419,29 @@ func main() {
 	go showContainers(chContainers, cli)
 	go func() {
 		for table := range chContainers {
-			tabs.Items[1].Content = table
+			header := container.NewVBox(layout.NewSpacer(), container.New(layout.NewGridLayoutWithColumns(11),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				widget.NewLabel("IMAGE"),
+				widget.NewLabel("COMMAND"),
+				widget.NewLabel("CREATED"),
+				widget.NewLabel("PORTS"),
+				widget.NewLabel("NAMES"),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer()))
+			footer := container.NewVBox(layout.NewSpacer())
+			tabs.Items[1].Content = container.NewHBox(layout.NewSpacer(), container.New(layout.NewBorderLayout(header, footer, nil, nil), header, footer, table), layout.NewSpacer())
+			// container.New(layout.NewGridLayoutWithColumns(7),
+			// 	layout.NewSpacer(),
+			// 	widget.NewLabel("IMAGE"),
+			// 	widget.NewLabel("COMMAND"),
+			// 	widget.NewLabel("CREATED"),
+			// 	widget.NewLabel("PORTS"),
+			// 	widget.NewLabel("NAMES"),
+			// 	layout.NewSpacer(),
+			// ), table), layout.NewSpacer())
 		}
 	}()
 
@@ -442,6 +464,7 @@ func main() {
 	}()
 
 	// container_compose := container.NewWithoutLayout()
+
 	theme_options := []string{"dark", "dark+", "light"}
 	theme_select := widget.NewSelect(theme_options, func(s string) {
 		switch s {
