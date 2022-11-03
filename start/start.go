@@ -523,6 +523,12 @@ func main() {
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
 					get_settings()
+					rrate.Text = fmt.Sprint(refresh_rate)
+					terminal.Text = terminal_setting
+					docker_e.Text = docker_path
+					rrate.Refresh()
+					terminal.Refresh()
+					docker_e.Refresh()
 				}),
 				layout.NewSpacer(),
 				layout.NewSpacer(),
