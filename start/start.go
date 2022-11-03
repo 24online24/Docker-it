@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"image/color"
+	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
@@ -27,7 +28,7 @@ import (
 var env string
 var terminal_setting string = ""
 var refresh_rate int = 1
-var docker_path string = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
+var docker_path string = ""
 
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
@@ -36,6 +37,34 @@ func get_env() {
 		fmt.Println("Your operating system is not supported by our project. Sorry! D:" + runtime.GOOS)
 		os.Exit(0)
 	}
+}
+
+func get_settings() {
+	dat, err := os.ReadFile(".settings")
+	if err != nil {
+		log.Fatal(err)
+	}
+	str := strings.Split(string(dat), "\n")
+	refresh_rate, err = strconv.Atoi(str[0])
+	if err != nil {
+		log.Fatal(err)
+	}
+	terminal_setting = str[1]
+	docker_path = str[2]
+	fmt.Println("Settings have been imported succesfully!")
+}
+
+func save_settings() {
+	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + docker_path
+	data := []byte(val)
+
+	err := ioutil.WriteFile(".settings", data, 0)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Println("Settings have been saved succesfully!")
 }
 
 func start_daemon() {
@@ -323,10 +352,11 @@ func showVolumes(chVolumes chan *widget.Table, cli *client.Client) {
 		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
+
 func main() {
 	get_env()
+	get_settings()
 	fmt.Println("Running in " + env + " mode...")
-
 	cli, err := client.NewClientWithOpts(client.FromEnv)
 	if err != nil {
 		log.Fatal(err)
@@ -393,14 +423,14 @@ func main() {
 		}
 	}()
 
-	// tabs.Append(container.NewTabItemWithIcon("Images", theme.MenuIcon(), widget.NewLabel("")))
-	// chImages := make(chan *widget.Table)
-	// go showImages(chImages, cli)
-	// go func() {
-	// 	for table := range chImages {
-	// 		tabs.Items[2].Content = table
-	// 	}
-	// }()
+	tabs.Append(container.NewTabItemWithIcon("Images", theme.MenuIcon(), widget.NewLabel("")))
+	chImages := make(chan *widget.Table)
+	go showImages(chImages, cli)
+	go func() {
+		for table := range chImages {
+			tabs.Items[2].Content = table
+		}
+	}()
 
 	tabs.Append(container.NewTabItemWithIcon("Volumes", theme.MenuIcon(), widget.NewLabel("")))
 	chVolumes := make(chan *widget.Table)
@@ -428,11 +458,28 @@ func main() {
 	theme_select.SetSelected("dark")
 
 	terminal := widget.NewEntry()
-	terminal.SetPlaceHolder("Terminal path/executable goes here...")
+	if terminal_setting != "" {
+		terminal.Text = terminal_setting
+	} else {
+		terminal.SetPlaceHolder("Terminal path/executable goes here...")
+	}
 	docker_e := widget.NewEntry()
-	docker_e.SetPlaceHolder("Docker Desktop path goes here (Windows only!)")
+	if env == "linux" {
+		docker_e.SetPlaceHolder("This setting is for windows only :D")
+	} else {
+		if docker_path != "" {
+			docker_e.Text = docker_path
+		} else {
+			docker_e.Text = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
+		}
+	}
 	rrate := widget.NewEntry()
 	rrate.SetPlaceHolder("Number between 1s to 5m...")
+	if refresh_rate == 0 {
+		rrate.Text = "1"
+	} else {
+		rrate.Text = fmt.Sprint(refresh_rate)
+	}
 	rrate.Validate()
 
 	container_settings := container.NewHBox(
@@ -470,11 +517,12 @@ func main() {
 				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
-					// rest go the same way
+					docker_path = docker_e.Text
+					save_settings()
 				}),
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
-					// restore saved data from file
+					get_settings()
 				}),
 				layout.NewSpacer(),
 				layout.NewSpacer(),
