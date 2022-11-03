@@ -45,7 +45,7 @@ func get_settings() {
 		log.Fatal(err)
 	}
 	str := strings.Split(string(dat), "\n")
-	refresh_rate, err = strconv.Atoi(str[0])
+	refresh_rate, err = strconv.Atoi(strings.Trim(str[0], "\r"))
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -122,7 +122,7 @@ func isDockerStarted(chDockerStarted chan int) {
 		} else {
 			x = 3
 		}
-		time.Sleep(time.Second * time.Duration(refresh_rate))
+		time.Sleep(time.Second)
 		chDockerStarted <- x
 	}
 }
@@ -515,6 +515,7 @@ func main() {
 				layout.NewSpacer(),
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
+					// TODO add theme here aswell
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
 					docker_path = docker_e.Text
