@@ -166,7 +166,6 @@ func niceSizeFormat(bytes int) string {
 func start_container(status string, data string) {
 	var cmd *exec.Cmd
 	if strings.Contains(status, "Up") {
-		fmt.Println("Open")
 		if runtime.GOOS == "windows" {
 			if terminal_setting == "" {
 				cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data, "/bin/bash")
@@ -197,7 +196,6 @@ func start_container(status string, data string) {
 			log.Fatal(err)
 		}
 	} else {
-		fmt.Println("Closed")
 		cmd = exec.Command("docker", "start", data)
 		err := cmd.Run()
 		if err != nil {
@@ -309,6 +307,7 @@ func showImages(chImages chan *widget.Table, cli *client.Client) {
 		ImagesTable.OnSelected = func(i widget.TableCellID) {
 			ImagesTable.UnselectAll()
 		}
+		chImages <- ImagesTable
 		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
@@ -349,6 +348,7 @@ func showVolumes(chVolumes chan *widget.Table, cli *client.Client) {
 		VolumesTable.OnSelected = func(i widget.TableCellID) {
 			VolumesTable.UnselectAll()
 		}
+		chVolumes <- VolumesTable
 		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
