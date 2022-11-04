@@ -45,12 +45,12 @@ func get_settings() {
 		log.Fatal(err)
 	}
 	str := strings.Split(string(dat), "\n")
-	refresh_rate, err = strconv.Atoi(str[0])
+	refresh_rate, err = strconv.Atoi(strings.Trim(str[0], "\r"))
 	if err != nil {
 		log.Fatal(err)
 	}
-	terminal_setting = str[1]
-	docker_path = str[2]
+	terminal_setting = strings.Trim(str[1], "\r")
+	docker_path = strings.Trim(str[2], "\r")
 	fmt.Println("Settings have been imported succesfully!")
 }
 
@@ -122,7 +122,7 @@ func isDockerStarted(chDockerStarted chan int) {
 		} else {
 			x = 3
 		}
-		time.Sleep(time.Second * time.Duration(refresh_rate))
+		time.Sleep(time.Second)
 		chDockerStarted <- x
 	}
 }
@@ -419,7 +419,29 @@ func main() {
 	go showContainers(chContainers, cli)
 	go func() {
 		for table := range chContainers {
-			tabs.Items[1].Content = table
+			header := container.NewVBox(layout.NewSpacer(), container.New(layout.NewGridLayoutWithColumns(11),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				widget.NewLabel("IMAGE"),
+				widget.NewLabel("COMMAND"),
+				widget.NewLabel("CREATED"),
+				widget.NewLabel("PORTS"),
+				widget.NewLabel("NAMES"),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer()))
+			footer := container.NewVBox(layout.NewSpacer())
+			tabs.Items[1].Content = container.NewHBox(layout.NewSpacer(), container.New(layout.NewBorderLayout(header, footer, nil, nil), header, footer, table), layout.NewSpacer())
+			// container.New(layout.NewGridLayoutWithColumns(7),
+			// 	layout.NewSpacer(),
+			// 	widget.NewLabel("IMAGE"),
+			// 	widget.NewLabel("COMMAND"),
+			// 	widget.NewLabel("CREATED"),
+			// 	widget.NewLabel("PORTS"),
+			// 	widget.NewLabel("NAMES"),
+			// 	layout.NewSpacer(),
+			// ), table), layout.NewSpacer())
 		}
 	}()
 
@@ -442,6 +464,7 @@ func main() {
 	}()
 
 	// container_compose := container.NewWithoutLayout()
+
 	theme_options := []string{"dark", "dark+", "light"}
 	theme_select := widget.NewSelect(theme_options, func(s string) {
 		switch s {
@@ -515,6 +538,7 @@ func main() {
 				layout.NewSpacer(),
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
+					// TODO add theme here aswell
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
 					docker_path = docker_e.Text
