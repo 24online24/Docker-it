@@ -50,12 +50,17 @@ func get_settings() {
 		log.Fatal(err)
 	}
 	terminal_setting = strings.Trim(str[1], "\r")
-	docker_path = strings.Trim(str[2], "\r")
+	if env == "windows" {
+		docker_path = strings.Trim(str[2], "\r")
+	}
 	fmt.Println("Settings have been imported succesfully!")
 }
 
 func save_settings() {
-	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + docker_path
+	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n"
+	if env == "windows" {
+		val += docker_path
+	}
 	data := []byte(val)
 
 	err := ioutil.WriteFile(".settings", data, 0)
@@ -541,7 +546,9 @@ func main() {
 					// TODO add theme here aswell
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
-					docker_path = docker_e.Text
+					if env == "windows" {
+						docker_path = docker_e.Text
+					}
 					save_settings()
 				}),
 				layout.NewSpacer(),
@@ -549,10 +556,13 @@ func main() {
 					get_settings()
 					rrate.Text = fmt.Sprint(refresh_rate)
 					terminal.Text = terminal_setting
-					docker_e.Text = docker_path
+					if env == "windows" {
+						docker_e.Text = docker_path
+						docker_e.Refresh()
+					}
 					rrate.Refresh()
 					terminal.Refresh()
-					docker_e.Refresh()
+
 				}),
 				layout.NewSpacer(),
 				layout.NewSpacer(),
