@@ -424,29 +424,7 @@ func main() {
 	go showContainers(chContainers, cli)
 	go func() {
 		for table := range chContainers {
-			header := container.NewVBox(layout.NewSpacer(), container.New(layout.NewGridLayoutWithColumns(11),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				widget.NewLabel("IMAGE"),
-				widget.NewLabel("COMMAND"),
-				widget.NewLabel("CREATED"),
-				widget.NewLabel("PORTS"),
-				widget.NewLabel("NAMES"),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer()))
-			footer := container.NewVBox(layout.NewSpacer())
-			tabs.Items[1].Content = container.NewHBox(layout.NewSpacer(), container.New(layout.NewBorderLayout(header, footer, nil, nil), header, footer, table), layout.NewSpacer())
-			// container.New(layout.NewGridLayoutWithColumns(7),
-			// 	layout.NewSpacer(),
-			// 	widget.NewLabel("IMAGE"),
-			// 	widget.NewLabel("COMMAND"),
-			// 	widget.NewLabel("CREATED"),
-			// 	widget.NewLabel("PORTS"),
-			// 	widget.NewLabel("NAMES"),
-			// 	layout.NewSpacer(),
-			// ), table), layout.NewSpacer())
+			tabs.Items[1].Content = table
 		}
 	}()
 
