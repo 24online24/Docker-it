@@ -30,6 +30,8 @@ var terminal_setting string = ""
 var refresh_rate int = 1
 var docker_path string = ""
 
+var cli *client.Client
+
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
 		env = runtime.GOOS
@@ -362,11 +364,11 @@ func main() {
 	get_env()
 	get_settings()
 	fmt.Println("Running in " + env + " mode...")
-	cli, err := client.NewClientWithOpts(client.FromEnv)
-	if err != nil {
-		log.Fatal(err)
+	var errcli error
+	cli, errcli = client.NewClientWithOpts(client.FromEnv)
+	if errcli != nil {
+		log.Fatal(errcli)
 	}
-
 	var a fyne.App = app.New()
 	var w fyne.Window = a.NewWindow("GoDocker")
 
@@ -549,7 +551,7 @@ func main() {
 			layout.NewSpacer(),
 		))
 
-	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), widget.NewLabel("Compose Docker files goes here!")))
+	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), widget.NewButton("Compose!", clicompose)))
 	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), container_settings))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()
