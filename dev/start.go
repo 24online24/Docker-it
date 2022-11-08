@@ -50,12 +50,17 @@ func get_settings() {
 		log.Fatal(err)
 	}
 	terminal_setting = strings.Trim(str[1], "\r")
-	docker_path = strings.Trim(str[2], "\r")
+	if env == "windows" {
+		docker_path = strings.Trim(str[2], "\r")
+	}
 	fmt.Println("Settings have been imported succesfully!")
 }
 
 func save_settings() {
-	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + docker_path
+	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n"
+	if env == "windows" {
+		val += docker_path
+	}
 	data := []byte(val)
 
 	err := ioutil.WriteFile(".settings", data, 0)
@@ -419,29 +424,7 @@ func main() {
 	go showContainers(chContainers, cli)
 	go func() {
 		for table := range chContainers {
-			header := container.NewVBox(layout.NewSpacer(), container.New(layout.NewGridLayoutWithColumns(11),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				widget.NewLabel("IMAGE"),
-				widget.NewLabel("COMMAND"),
-				widget.NewLabel("CREATED"),
-				widget.NewLabel("PORTS"),
-				widget.NewLabel("NAMES"),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer()))
-			footer := container.NewVBox(layout.NewSpacer())
-			tabs.Items[1].Content = container.NewHBox(layout.NewSpacer(), container.New(layout.NewBorderLayout(header, footer, nil, nil), header, footer, table), layout.NewSpacer())
-			// container.New(layout.NewGridLayoutWithColumns(7),
-			// 	layout.NewSpacer(),
-			// 	widget.NewLabel("IMAGE"),
-			// 	widget.NewLabel("COMMAND"),
-			// 	widget.NewLabel("CREATED"),
-			// 	widget.NewLabel("PORTS"),
-			// 	widget.NewLabel("NAMES"),
-			// 	layout.NewSpacer(),
-			// ), table), layout.NewSpacer())
+			tabs.Items[1].Content = table
 		}
 	}()
 
@@ -541,7 +524,9 @@ func main() {
 					// TODO add theme here aswell
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
-					docker_path = docker_e.Text
+					if env == "windows" {
+						docker_path = docker_e.Text
+					}
 					save_settings()
 				}),
 				layout.NewSpacer(),
@@ -549,10 +534,13 @@ func main() {
 					get_settings()
 					rrate.Text = fmt.Sprint(refresh_rate)
 					terminal.Text = terminal_setting
-					docker_e.Text = docker_path
+					if env == "windows" {
+						docker_e.Text = docker_path
+						docker_e.Refresh()
+					}
 					rrate.Refresh()
 					terminal.Refresh()
-					docker_e.Refresh()
+
 				}),
 				layout.NewSpacer(),
 				layout.NewSpacer(),
