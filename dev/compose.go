@@ -13,7 +13,7 @@ func check(e error) {
 	}
 }
 
-func main() {
+func clicompose() {
 	var output string
 	var space string = "  "
 	file, err := os.Create("./docker-compose.yml")
