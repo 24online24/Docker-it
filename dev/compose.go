@@ -13,7 +13,7 @@ func check(e error) {
 	}
 }
 
-func clicompose() {
+func main() {
 	var output string
 	var space string = "  "
 	file, err := os.Create("./docker-compose.yml")
@@ -37,24 +37,41 @@ func clicompose() {
 		_, err = file.WriteString(output)
 		check(err)
 
-		fmt.Printf("What image do you want to use for service %d?\n", i)
-		fmt.Scanln(&input)
-		output = strings.Repeat(space, 2) + "image: " + input + "\n"
-		_, err = file.WriteString(output)
-		check(err)
-
-		fmt.Printf("What internal (container) port do you want to use for service %d?\nLeave empty if you don't want to expose (any more) ports.\n", i)
-
-		input = ""
-		fmt.Scanln(&input)
-		if input != "" {
-			output = strings.Repeat(space, 2) + "ports:\n"
+		fmt.Printf("Do you want a standard image or custom build for service %d?\n standard image - 1 \n custom build - 2\n", i)
+		var option int
+		fmt.Scanln(&option)
+		if option == 1 {
+			fmt.Printf("What image do you want to use for service %d?\n", i)
+			fmt.Scanln(&input)
+			output = strings.Repeat(space, 2) + "image: " + input + "\n"
 			_, err = file.WriteString(output)
 			check(err)
-			output = strings.Repeat(space, 3) + "- \"" + input + ":"
+		} else if option == 2 {
+			fmt.Printf("What is the relative path to dockerfile's directory for service %d?\n", i)
+			fmt.Scanln(&input)
+			output = strings.Repeat(space, 2) + "build: " + input + "\n"
+			_, err = file.WriteString(output)
+			check(err)
+		}
+
+		firstRun := true
+		for {
+			fmt.Printf("What internal (container) port do you want to use for service %d?\nLeave empty if you don't want to expose (any more) ports.\n", i)
+			input = ""
+			fmt.Scanln(&input)
+			if input == "" {
+				break
+			}
+			if firstRun {
+				output = strings.Repeat(space, 2) + "ports:\n"
+				_, err = file.WriteString(output)
+				check(err)
+				firstRun = false
+			}
+			output = strings.Repeat(space, 3) + "- '" + input + ":"
 			fmt.Printf("What external (host computer) port do you want to use?\n")
 			fmt.Scanln(&input)
-			output = output + input + "\""
+			output = output + input + "'\n"
 			_, err = file.WriteString(output)
 			check(err)
 		}
