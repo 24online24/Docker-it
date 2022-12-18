@@ -1,17 +1,14 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"image/color"
-	"io/ioutil"
 	"log"
 	"os"
 	"os/exec"
 	"runtime"
 	"strconv"
 	"strings"
-	"time"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -20,8 +17,6 @@ import (
 	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
-	"github.com/docker/docker/api/types"
-	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
 
@@ -37,135 +32,6 @@ func get_env() {
 		fmt.Println("Your operating system is not supported by our project. Sorry! D:" + runtime.GOOS)
 		os.Exit(0)
 	}
-}
-
-func get_settings() {
-	dat, err := os.ReadFile(".settings")
-	if err != nil {
-		log.Fatal(err)
-	}
-	str := strings.Split(string(dat), "\n")
-	refresh_rate, err = strconv.Atoi(strings.Trim(str[0], "\r"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	terminal_setting = strings.Trim(str[1], "\r")
-	if env == "windows" {
-		docker_path = strings.Trim(str[2], "\r")
-	}
-	fmt.Println("Settings have been imported succesfully!")
-}
-
-func save_settings() {
-	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n"
-	if env == "windows" {
-		val += docker_path
-	}
-	data := []byte(val)
-
-	err := ioutil.WriteFile(".settings", data, 0)
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Settings have been saved succesfully!")
-}
-
-func start_daemon() {
-	if env == "windows" {
-		cmd := exec.Command(docker_path)
-		go cmd.Run()
-	} else {
-		cmd := exec.Command("systemctl", "start", "docker")
-		_ = cmd.Run()
-	}
-	if !check_daemon() {
-		fmt.Println("BRUH it didnt start XD yet...")
-	}
-}
-
-func stop_daemon() {
-	if check_daemon() {
-		if env == "windows" {
-			cmd := exec.Command("taskkill", "/im", "Docker Desktop.exe", "/t", "/f")
-			cmd.Run()
-		} else {
-			cmd := exec.Command("systemctl", "stop", "docker*")
-			_ = cmd.Run()
-		}
-		if check_daemon() {
-			fmt.Println("BRUH it didnt stop XD")
-		}
-	}
-}
-
-func check_daemon() bool {
-	cmd2 := exec.Command("docker", "ps")
-	out, err := cmd2.CombinedOutput()
-	if strings.Contains(string(out), "error during connect:") ||
-		strings.Contains(string(out), "Cannot connect to the Docker daemon") {
-		return false
-	}
-	if err != nil {
-		fmt.Println(err)
-	}
-	return true
-}
-
-func isDockerStarted(chDockerStarted chan int) {
-	x := 0
-	for {
-		cmd := exec.Command("docker", "ps")
-		out, err := cmd.CombinedOutput()
-		if err != nil {
-			x = 1
-		}
-		if strings.Contains(string(out), "error during connect:") ||
-			strings.Contains(string(out), "Cannot connect to the Docker daemon") {
-			x = 2
-		} else {
-			x = 3
-		}
-		time.Sleep(time.Second)
-		chDockerStarted <- x
-	}
-}
-
-func niceTimeFormat(seconds int) string {
-	var time string = ""
-	if seconds > 60 {
-		var minutes int = seconds / 60
-		seconds %= 60
-		if minutes > 60 {
-			var hours int = minutes / 60
-			minutes = minutes % 60
-			if hours > 24 {
-				var days int = hours / 24
-				hours = hours % 24
-				time = strconv.Itoa(days) + "d "
-			}
-			time = time + strconv.Itoa(hours) + "h "
-		}
-		time = time + strconv.Itoa(minutes) + "m "
-	}
-	time = time + strconv.Itoa(seconds) + "s ago"
-	return time
-}
-
-func niceSizeFormat(bytes int) string {
-	var size string = ""
-	switch {
-	case bytes > 1024*1024*1024:
-		size = strconv.Itoa(bytes/1024/1024/1024) + " GiB"
-	case bytes > 1024*1024:
-		size = strconv.Itoa(bytes/1024/1024) + " MiB"
-	case bytes > 1024:
-		size = strconv.Itoa(bytes/1024) + " KiB"
-	default:
-		size = strconv.Itoa(bytes) + " Bytes"
-	}
-	return size
 }
 
 func start_container(status string, data string) {
@@ -206,155 +72,6 @@ func start_container(status string, data string) {
 		if err != nil {
 			log.Fatal(err)
 		}
-	}
-}
-
-func showContainers(chContainers chan *widget.Table, cli *client.Client) {
-	for {
-		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "ACTION"}}
-
-		containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{All: true, Limit: 10})
-		if err == nil {
-			for _, container := range containers {
-				var portString string = ""
-				for index, port := range container.Ports {
-					if len(port.IP) > 0 {
-						portString += port.IP + ":"
-					}
-					if port.PublicPort != 0 {
-						portString += strconv.Itoa(int(port.PublicPort)) + "->"
-					}
-					portString += strconv.Itoa(int(port.PrivatePort)) + "/" + port.Type
-					if index < len(container.Ports)-1 {
-						portString += ", "
-					}
-				}
-
-				var actionName string
-				if actionName = "Open"; strings.Contains(container.Status, "Up") {
-					actionName = "Attach"
-				}
-
-				data = append(data, []string{
-					container.ID[:10], container.Image, container.Command,
-					niceTimeFormat(int(time.Now().Unix() - container.Created)), container.Status,
-					portString, container.Names[0], actionName,
-				})
-			}
-		}
-		ContainersTable := widget.NewTable(
-			func() (int, int) {
-				return len(data), len(data[0])
-			},
-			func() fyne.CanvasObject {
-				tab := widget.NewLabel("")
-				return tab
-			},
-			func(i widget.TableCellID, o fyne.CanvasObject) {
-				o.(*widget.Label).SetText(data[i.Row][i.Col])
-			},
-		)
-		for column := 0; column < len(data[0]); column++ {
-			var maxCharLen int = 0
-			for row := 0; row < len(data); row++ {
-				if len(data[row][column]) > maxCharLen {
-					maxCharLen = len(data[row][column])
-				}
-			}
-			ContainersTable.SetColumnWidth(column, 40+float32(maxCharLen)*7)
-		}
-		ContainersTable.OnSelected = func(i widget.TableCellID) {
-			if i.Col == 7 && i.Row > 0 {
-				start_container(data[i.Row][4], data[i.Row][0])
-			}
-			ContainersTable.UnselectAll()
-		}
-		chContainers <- ContainersTable
-		time.Sleep(time.Second * time.Duration(refresh_rate))
-	}
-}
-
-func showImages(chImages chan *widget.Table, cli *client.Client) {
-	for {
-		var data [][]string = [][]string{{"REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE"}}
-
-		images, err := cli.ImageList(context.Background(), types.ImageListOptions{All: true})
-		if err == nil {
-			for _, image := range images {
-				data = append(data, []string{
-					strings.Split(image.RepoTags[0], ":")[0], strings.Split(image.RepoTags[0], ":")[1],
-					strings.Split(image.ID, ":")[1][:12], niceTimeFormat(int(time.Now().Unix() - image.Created)),
-					niceSizeFormat(int(image.Size)),
-				})
-			}
-		}
-		ImagesTable := widget.NewTable(
-			func() (int, int) {
-				return len(data), len(data[0])
-			},
-			func() fyne.CanvasObject {
-				tab := widget.NewLabel("")
-				return tab
-			},
-			func(i widget.TableCellID, o fyne.CanvasObject) {
-				o.(*widget.Label).SetText(data[i.Row][i.Col])
-			},
-		)
-		for column := 0; column < len(data[0]); column++ {
-			var maxCharLen int = 0
-			for row := 0; row < len(data); row++ {
-				if len(data[row][column]) > maxCharLen {
-					maxCharLen = len(data[row][column])
-				}
-			}
-			ImagesTable.SetColumnWidth(column, 40+float32(maxCharLen)*7)
-		}
-		ImagesTable.OnSelected = func(i widget.TableCellID) {
-			ImagesTable.UnselectAll()
-		}
-		chImages <- ImagesTable
-		time.Sleep(time.Second * time.Duration(refresh_rate))
-	}
-}
-
-func showVolumes(chVolumes chan *widget.Table, cli *client.Client) {
-	for {
-		var data [][]string = [][]string{{"DRIVER", "VOLUME NAME"}}
-
-		volumes, err := cli.VolumeList(context.Background(), filters.Args{})
-		if err == nil {
-			for _, volume := range volumes.Volumes {
-				data = append(data, []string{
-					volume.Driver, volume.Name,
-				})
-			}
-		}
-		VolumesTable := widget.NewTable(
-			func() (int, int) {
-				return len(data), len(data[0])
-			},
-			func() fyne.CanvasObject {
-				tab := widget.NewLabel("")
-				return tab
-			},
-			func(i widget.TableCellID, o fyne.CanvasObject) {
-				o.(*widget.Label).SetText(data[i.Row][i.Col])
-			},
-		)
-		for column := 0; column < len(data[0]); column++ {
-			var maxCharLen int = 0
-			for row := 0; row < len(data); row++ {
-				if len(data[row][column]) > maxCharLen {
-					maxCharLen = len(data[row][column])
-				}
-			}
-			VolumesTable.SetColumnWidth(column, 40+float32(maxCharLen)*7)
-		}
-		VolumesTable.OnSelected = func(i widget.TableCellID) {
-			VolumesTable.UnselectAll()
-		}
-		chVolumes <- VolumesTable
-		time.Sleep(time.Second * time.Duration(refresh_rate))
 	}
 }
 
