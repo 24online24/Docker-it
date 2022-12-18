@@ -134,6 +134,7 @@ func main() {
 		layout.NewSpacer(),
 	)
 
+	// createTabs(cli)
 	tabs := container.NewAppTabs(container.NewTabItemWithIcon("Start", theme.HomeIcon(), container_start))
 
 	tabs.Append(container.NewTabItemWithIcon("Containers", theme.MenuIcon(), widget.NewLabel("")))
@@ -205,6 +206,68 @@ func main() {
 	}
 	rrate.Validate()
 
+	container_compose := container.NewHBox(
+		container.NewVBox(
+			layout.NewSpacer(),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Select your favourite theme:"),
+				theme_select,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Terminal path to executable:"),
+				terminal,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Docker Desktop.exe path (Windows only):"),
+				docker_e,
+				layout.NewSpacer(),
+			),
+			container.New(layout.NewGridLayoutWithColumns(4),
+				layout.NewSpacer(),
+				widget.NewLabel("Refresh rate for containers in seconds:"),
+				rrate,
+				layout.NewSpacer(),
+			),
+			layout.NewSpacer(),
+			container.NewHBox(
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
+					// TODO add theme here aswell
+					refresh_rate, _ = strconv.Atoi(rrate.Text)
+					terminal_setting = terminal.Text
+					if env == "windows" {
+						docker_path = docker_e.Text
+					}
+					save_settings()
+				}),
+				layout.NewSpacer(),
+				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
+					get_settings()
+					rrate.Text = fmt.Sprint(refresh_rate)
+					terminal.Text = terminal_setting
+					if env == "windows" {
+						docker_e.Text = docker_path
+						docker_e.Refresh()
+					}
+					rrate.Refresh()
+					terminal.Refresh()
+
+				}),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+				layout.NewSpacer(),
+			),
+			layout.NewSpacer(),
+		))
+	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), container_compose))
+
 	container_settings := container.NewHBox(
 		container.NewVBox(
 			layout.NewSpacer(),
@@ -265,8 +328,6 @@ func main() {
 			),
 			layout.NewSpacer(),
 		))
-
-	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), widget.NewLabel("Compose Docker files goes here!")))
 	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), container_settings))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()
