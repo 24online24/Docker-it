@@ -23,22 +23,24 @@ func get_settings() {
 		log.Fatal(err)
 	}
 	terminal_setting = strings.Trim(str[1], "\r")
+	theme_color = strings.Trim(str[2], "\r")
 	if env == "windows" {
-		docker_path = strings.Trim(str[2], "\r")
-		theme_color = strings.Trim(str[3], "\r")
-	} else {
-		theme_color = strings.Trim(str[2], "\r")
+		if len(str) == 4 {
+			docker_path = strings.Trim(str[3], "\r")
+		} else {
+			docker_path = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
+		}
 	}
 	fmt.Println("Settings have been imported succesfully!")
 }
 
 func save_settings() {
-	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n"
+	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + theme_color + "\n"
 	if env == "windows" {
-		val += docker_path + "\n"
-		val += theme_color
-	} else {
-		val += theme_color
+		if docker_path == "" {
+			docker_path = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
+		}
+		val += docker_path
 	}
 	data := []byte(val)
 
