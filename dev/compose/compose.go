@@ -102,7 +102,7 @@ func ports(outputFile *os.File, w *bufio.Writer) {
 		output += input + ":"
 		input = getInput("Container port.")
 		output += input
-		output += "'"
+		output += "'\n"
 		writeLine(outputFile, w, output)
 	}
 }
