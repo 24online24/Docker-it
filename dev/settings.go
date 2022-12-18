@@ -9,6 +9,9 @@ import (
 	"strings"
 )
 
+// TODO check for the file, if not available, create it and fill it with default values
+// validate null input as well
+
 func get_settings() {
 	dat, err := os.ReadFile(".settings")
 	if err != nil {
@@ -22,6 +25,9 @@ func get_settings() {
 	terminal_setting = strings.Trim(str[1], "\r")
 	if env == "windows" {
 		docker_path = strings.Trim(str[2], "\r")
+		theme_color = strings.Trim(str[3], "\r")
+	} else {
+		theme_color = strings.Trim(str[2], "\r")
 	}
 	fmt.Println("Settings have been imported succesfully!")
 }
@@ -29,7 +35,10 @@ func get_settings() {
 func save_settings() {
 	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n"
 	if env == "windows" {
-		val += docker_path
+		val += docker_path + "\n"
+		val += theme_color
+	} else {
+		val += theme_color
 	}
 	data := []byte(val)
 
