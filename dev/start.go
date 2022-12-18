@@ -24,6 +24,7 @@ var env string
 var terminal_setting string = ""
 var refresh_rate int = 1
 var docker_path string = ""
+var theme_color string = "dark"
 
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
@@ -171,15 +172,18 @@ func main() {
 		switch s {
 		case "dark":
 			a.Settings().SetTheme(theme.DefaultTheme())
+			theme_color = s
 		case "dark+":
 			a.Settings().SetTheme(&darker_than_my_soul{})
+			theme_color = s
 		case "light":
 			a.Settings().SetTheme(&white_theme{})
+			theme_color = s
 		}
 	})
 
 	// TODO set to prev selected theme
-	theme_select.SetSelected("dark")
+	theme_select.SetSelected(theme_color)
 
 	terminal := widget.NewEntry()
 	if terminal_setting != "" {
