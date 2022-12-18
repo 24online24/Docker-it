@@ -1,0 +1,8 @@
+services:
+    webserver:
+        image: nginx
+        ports:
+            - '80:80'    php:
+        image: ./phpfpm
+        ports:
+            - '9000:9000'    database:
