@@ -14,7 +14,17 @@ import (
 func get_settings() {
 	dat, err := os.ReadFile(".settings")
 	if err != nil {
-		log.Fatal(err)
+		fil, err2 := os.Create(".settings")
+		value := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + theme_color + "\n"
+		if env == "windows" {
+			value += docker_path
+		}
+		data_b := []byte(value)
+		fil.Write(data_b)
+		if err2 != nil {
+			log.Fatal(err2)
+		}
+		dat, _ = os.ReadFile(".settings")
 	}
 	str := strings.Split(string(dat), "\n")
 	refresh_rate, err = strconv.Atoi(strings.Trim(str[0], "\r"))
@@ -36,9 +46,6 @@ func get_settings() {
 func save_settings() {
 	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + theme_color + "\n"
 	if env == "windows" {
-		if docker_path == "" {
-			docker_path = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
-		}
 		val += docker_path
 	}
 	data := []byte(val)

@@ -19,7 +19,7 @@ import (
 var env string
 var terminal_setting string = ""
 var refresh_rate int = 1
-var docker_path string = ""
+var docker_path string = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
 var theme_color string = "dark"
 
 func get_env() {
