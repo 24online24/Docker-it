@@ -18,7 +18,7 @@ import (
 )
 
 func createStartTab(cli *client.Client) *fyne.Container {
-	start_title := canvas.NewText("GoDocker", color.RGBA{0, 183, 237, 3})
+	start_title = canvas.NewText("GoDocker", color.Color(theme.PrimaryColor()))
 	start_title.TextSize = 50
 
 	dockerd_status := widget.NewLabel("")
@@ -216,7 +216,6 @@ func createSettingsTab(cli *client.Client, theme_select *widget.Select, terminal
 				layout.NewSpacer(),
 				layout.NewSpacer(),
 				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
-					// TODO add theme here aswell
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
 					if env == "windows" {

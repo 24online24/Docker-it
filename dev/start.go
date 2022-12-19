@@ -10,6 +10,7 @@ import (
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
+	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
@@ -21,6 +22,7 @@ var terminal_setting string = ""
 var refresh_rate int = 5
 var docker_path string = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
 var theme_color string = "dark+"
+var start_title *canvas.Text
 
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
@@ -122,12 +124,13 @@ func main() {
 			a.Settings().SetTheme(theme.DefaultTheme())
 			theme_color = s
 		case "dark+":
-			a.Settings().SetTheme(&darker_than_my_soul{})
+			a.Settings().SetTheme(&dark_plus{})
 			theme_color = s
 		case "light":
 			a.Settings().SetTheme(&myTheme{})
 			theme_color = s
 		}
+		w.Content().Refresh()
 	})
 
 	theme_select.SetSelected(theme_color)

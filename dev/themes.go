@@ -7,13 +7,11 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
-type darker_than_my_soul struct{}
-type white_theme struct{}
+type dark_plus struct{}
 
-// DARK THEME HERE could be customized
-var _ fyne.Theme = (*darker_than_my_soul)(nil)
+var _ fyne.Theme = (*dark_plus)(nil)
 
-func (m darker_than_my_soul) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
+func (m dark_plus) Color(name fyne.ThemeColorName, variant fyne.ThemeVariant) color.Color {
 	if name == theme.ColorNameBackground {
 		if variant == theme.VariantLight {
 			return color.White
@@ -24,15 +22,15 @@ func (m darker_than_my_soul) Color(name fyne.ThemeColorName, variant fyne.ThemeV
 	return theme.DefaultTheme().Color(name, variant)
 }
 
-func (m darker_than_my_soul) Icon(name fyne.ThemeIconName) fyne.Resource {
+func (m dark_plus) Icon(name fyne.ThemeIconName) fyne.Resource {
 	return theme.DefaultTheme().Icon(name)
 }
 
-func (m darker_than_my_soul) Font(style fyne.TextStyle) fyne.Resource {
+func (m dark_plus) Font(style fyne.TextStyle) fyne.Resource {
 	return theme.DefaultTheme().Font(style)
 }
 
-func (m darker_than_my_soul) Size(name fyne.ThemeSizeName) float32 {
+func (m dark_plus) Size(name fyne.ThemeSizeName) float32 {
 	return theme.DefaultTheme().Size(name)
 }
 
