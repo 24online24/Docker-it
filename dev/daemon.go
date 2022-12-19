@@ -16,7 +16,7 @@ func start_daemon() {
 		_ = cmd.Run()
 	}
 	if !check_daemon() {
-		fmt.Println("BRUH it didnt start XD yet...")
+		fmt.Println("It hasn't started yet.")
 	}
 }
 
@@ -30,7 +30,7 @@ func stop_daemon() {
 			_ = cmd.Run()
 		}
 		if check_daemon() {
-			fmt.Println("BRUH it didnt stop XD")
+			fmt.Println("It hasn't stopped yet.")
 		}
 	}
 }
@@ -39,7 +39,7 @@ func check_daemon() bool {
 	cmd2 := exec.Command("docker", "ps")
 	out, err := cmd2.CombinedOutput()
 	if strings.Contains(string(out), "error during connect:") ||
-		strings.Contains(string(out), "Cannot connect to the Docker daemon") {
+		strings.Contains(string(out), "Cannot connect to the Docker daemon.") {
 		return false
 	}
 	if err != nil {

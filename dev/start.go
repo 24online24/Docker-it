@@ -2,19 +2,15 @@ package main
 
 import (
 	"fmt"
-	"image/color"
 	"log"
 	"os"
 	"os/exec"
 	"runtime"
-	"strconv"
 	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/canvas"
 	"fyne.io/fyne/v2/container"
-	"fyne.io/fyne/v2/layout"
 	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/docker/docker/client"
@@ -88,55 +84,7 @@ func main() {
 	var a fyne.App = app.New()
 	var w fyne.Window = a.NewWindow("GoDocker")
 
-	start_title := canvas.NewText("GoDocker", color.RGBA{0, 183, 237, 3})
-	start_title.TextSize = 50
-
-	dockerd_status := widget.NewLabel("")
-
-	start_button := widget.NewButton("Start/Stop", func() {
-		if !check_daemon() {
-			start_daemon()
-		} else {
-			stop_daemon()
-		}
-	})
-
-	chDockerStarted := make(chan int)
-	go isDockerStarted(chDockerStarted)
-	go func() {
-		for running := range chDockerStarted {
-			if running == 3 {
-				dockerd_status.SetText("Docker is running! :)")
-			} else {
-				dockerd_status.SetText("Docker is not running! :(")
-			}
-		}
-	}()
-
-	// add filter menus, stop container option
-	container_start := container.NewVBox(
-		layout.NewSpacer(),
-		container.New(layout.NewCenterLayout(), start_title),
-		layout.NewSpacer(),
-		container.New(layout.NewGridLayoutWithColumns(4),
-			layout.NewSpacer(),
-			widget.NewLabel("Docker daemon status:"),
-			dockerd_status,
-			layout.NewSpacer(),
-		),
-		container.New(layout.NewGridLayoutWithColumns(4),
-			layout.NewSpacer(),
-			widget.NewLabel("Start/Stop Daemon:"),
-			start_button,
-			layout.NewSpacer(),
-		),
-		layout.NewSpacer(),
-		// container.New(layout.NewCenterLayout(), widget.NewLabel("Help")),
-		layout.NewSpacer(),
-	)
-
-	// createTabs(cli)
-	tabs := container.NewAppTabs(container.NewTabItemWithIcon("Start", theme.HomeIcon(), container_start))
+	tabs := container.NewAppTabs(container.NewTabItemWithIcon("Start", theme.HomeIcon(), createStartTab(cli)))
 
 	tabs.Append(container.NewTabItemWithIcon("Containers", theme.MenuIcon(), widget.NewLabel("")))
 	chContainers := make(chan *widget.Table)
@@ -210,129 +158,8 @@ func main() {
 	}
 	rrate.Validate()
 
-	container_compose := container.NewHBox(
-		container.NewVBox(
-			layout.NewSpacer(),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Select your favourite theme:"),
-				theme_select,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Terminal path to executable:"),
-				terminal,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Docker Desktop.exe path (Windows only):"),
-				docker_e,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Refresh rate for containers in seconds:"),
-				rrate,
-				layout.NewSpacer(),
-			),
-			layout.NewSpacer(),
-			container.NewHBox(
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
-					// TODO add theme here aswell
-					refresh_rate, _ = strconv.Atoi(rrate.Text)
-					terminal_setting = terminal.Text
-					if env == "windows" {
-						docker_path = docker_e.Text
-					}
-					save_settings()
-				}),
-				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
-					get_settings()
-					rrate.Text = fmt.Sprint(refresh_rate)
-					terminal.Text = terminal_setting
-					if env == "windows" {
-						docker_e.Text = docker_path
-						docker_e.Refresh()
-					}
-					rrate.Refresh()
-					terminal.Refresh()
-
-				}),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-			),
-			layout.NewSpacer(),
-		))
-	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), container_compose))
-
-	container_settings := container.NewHBox(
-		container.NewVBox(
-			layout.NewSpacer(),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Select your favourite theme:"),
-				theme_select,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Terminal path to executable:"),
-				terminal,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Docker Desktop.exe path (Windows only):"),
-				docker_e,
-				layout.NewSpacer(),
-			),
-			container.New(layout.NewGridLayoutWithColumns(4),
-				layout.NewSpacer(),
-				widget.NewLabel("Refresh rate for containers in seconds:"),
-				rrate,
-				layout.NewSpacer(),
-			),
-			layout.NewSpacer(),
-			container.NewHBox(
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
-					// TODO add theme here aswell
-					refresh_rate, _ = strconv.Atoi(rrate.Text)
-					terminal_setting = terminal.Text
-					if env == "windows" {
-						docker_path = docker_e.Text
-					}
-					save_settings()
-				}),
-				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
-					get_settings()
-					rrate.Text = fmt.Sprint(refresh_rate)
-					terminal.Text = terminal_setting
-					if env == "windows" {
-						docker_e.Text = docker_path
-						docker_e.Refresh()
-					}
-					rrate.Refresh()
-					terminal.Refresh()
-
-				}),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-				layout.NewSpacer(),
-			),
-			layout.NewSpacer(),
-		))
-	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), container_settings))
+	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), createComposeTab(cli)))
+	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), createSettingsTab(cli, theme_select, terminal, docker_e, rrate)))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()
 	w.SetIcon(theme.ComputerIcon())

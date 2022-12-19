@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"strconv"
@@ -44,7 +43,7 @@ func save_settings() {
 	}
 	data := []byte(val)
 
-	err := ioutil.WriteFile(".settings", data, 0)
+	err := os.WriteFile(".settings", data, 0)
 
 	if err != nil {
 		log.Fatal(err)
