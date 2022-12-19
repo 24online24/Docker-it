@@ -80,15 +80,20 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	hostPortEntry := widget.NewEntry()
 	containerPortEntry := widget.NewEntry()
 
+	serviceName := []string{}
+	imageOrFile := []string{}
+	nameOrPath := []string{}
+	bindPorts := []bool{}
+	hostPort := []string{}
+	containerPort := []string{}
+
 	form.OnSubmit = func() {
-		// fmt.Println("spicy")
-		serviceName := []string{nameEntry.Text}
-		imageOrFile := []string{imageOrFileRadio.Selected}
-		nameOrPath := []string{namePathEntry.Text}
-		bindPorts := []bool{portsCheck.Checked}
-		hostPort := []string{hostPortEntry.Text}
-		containerPort := []string{containerPortEntry.Text}
-		generateCompose(serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
+		serviceName = append(serviceName, nameEntry.Text)
+		imageOrFile = append(imageOrFile, imageOrFileRadio.Selected)
+		nameOrPath = append(nameOrPath, namePathEntry.Text)
+		bindPorts = append(bindPorts, portsCheck.Checked)
+		hostPort = append(hostPort, hostPortEntry.Text)
+		containerPort = append(containerPort, containerPortEntry.Text)
 	}
 	container_compose := container.NewVBox(
 		container.NewHBox(
@@ -138,12 +143,24 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 		),
 		form,
 		layout.NewSpacer(),
-		// widget.NewButton("Generate", func() {
-		// 	for index, obj := range formsContainer.Objects {
-		// 		fmt.Println(index, obj)
-
-		// 	}
-		// }),
+		widget.NewButton("Check", func() {
+			fmt.Println(serviceName)
+			fmt.Println(imageOrFile)
+			fmt.Println(nameOrPath)
+			fmt.Println(bindPorts)
+			fmt.Println(hostPort)
+			fmt.Println(containerPort)
+		}),
+		layout.NewSpacer(),
+		widget.NewButton("Generate", func() {
+			fmt.Println(serviceName)
+			fmt.Println(imageOrFile)
+			fmt.Println(nameOrPath)
+			fmt.Println(bindPorts)
+			fmt.Println(hostPort)
+			fmt.Println(containerPort)
+			generateCompose(serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
+		}),
 	)
 
 	return container_compose

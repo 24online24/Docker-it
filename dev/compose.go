@@ -61,7 +61,7 @@ func writeContainer(outputFile *os.File, w *bufio.Writer, serviceName []string, 
 	switch imageOrFile[index] {
 	case "Image":
 		output = strings.Repeat(space, 2) + "image: " + nameOrPath[index] + "\n"
-	case "Dockerfile":
+	case "Custom":
 		output = strings.Repeat(space, 2) + "image: " + nameOrPath[index] + "\n"
 	}
 	writeLine(outputFile, w, output)

@@ -1,5 +1,9 @@
 services:
-    webserver:
+    server:
         image: nginx
         ports:
-            - '82:80'
+            - '81:80'
+    database:
+        image: mariadb
+        ports:
+            - '3306:3306'
