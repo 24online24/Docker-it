@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 
 	"fyne.io/fyne/v2/app"
@@ -24,6 +25,7 @@ func main() {
 		},
 	}
 
+	fmt.Println(form.Items)
 	// we can also append items
 	form.Append("Text", textArea)
 	myWindow.SetContent(form)
