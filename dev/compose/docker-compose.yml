@@ -1,8 +1,9 @@
 services:
-    server:
+    server1:
         image: nginx
         ports:
-            - '80:80'    php:
-        image: phpfpm
+            - '81:80'
+    server2:
+        image: httpd
         ports:
-            - '365:365'    database:
+            - '82:80'

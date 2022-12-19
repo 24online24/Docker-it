@@ -80,37 +80,68 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	// }
 	// nrOfServicesEntry.Validate()
 
-	form := container.NewGridWithColumns(3)
-
+	forms := container.NewGridWithColumns(3)
+	// form := widget.NewForm(widget.NewFormItem(""))
 	container_compose := container.NewVBox(
-		container.NewVBox(
-			layout.NewSpacer(),
-			container.NewHBox(
-				widget.NewLabel("Number of services/ containers:"),
-				nrOfServicesEntry,
-				widget.NewButton("Create form", func() {
+		container.NewHBox(
+			widget.NewLabel("Number of services/ containers:"),
+			nrOfServicesEntry,
+			widget.NewButton("Create form", func() {
+				if nrOfServicesEntry.Text != "" {
+
 					nrOfServices, err := strconv.Atoi(nrOfServicesEntry.Text)
 
 					if err != nil {
 						log.Fatal(err)
 					}
 					for i := 1; i <= nrOfServices; i++ {
-						form.Add(container.NewVBox(
-							container.NewHBox(
-								widget.NewLabel(""),
+						// forms.Add(container.NewVBox(
+						// 	container.NewHBox(
+						// 		widget.NewLabel("Name of the service:"),
+						// 		widget.NewEntry(),
+						// 	),
+						// 	container.NewHBox(
+						// 		widget.NewLabel("Standard image or custom dockerfile:"),
+						// 		widget.NewEntry(),
+						// 	),
+						// 	container.NewHBox(
+						// 		widget.NewLabel("Name of the service"),
+						// 		widget.NewEntry(),
+						// 	),
+						// 	container.NewHBox(
+						// 		widget.NewCheck("Bind ports?", func(b bool) {}),
+						// 	),
+						// ))
+						forms.Add(widget.NewForm(
+							widget.NewFormItem(
+								"Name of the service:",
+								widget.NewEntry(),
+							),
+							widget.NewFormItem(
+								"Standard image or custom dockerfile:",
+								widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {}),
+							),
+							widget.NewFormItem(
+								"Name of image/ path to dockerfile folder:",
+								widget.NewEntry(),
+							),
+							widget.NewFormItem(
+								"How many bound ports do you want?",
+								widget.NewCheck("", func(b bool) {}),
 							),
 						))
 					}
-				}),
-			),
-			layout.NewSpacer(),
-			// layout.NewSpacer(),
-			form,
-			// layout.NewSpacer(),
-			// layout.NewSpacer(),
-			// layout.NewSpacer(),
-			layout.NewSpacer(),
-		))
+				}
+			}),
+		),
+		// layout.NewSpacer(),
+		forms,
+		// layout.NewSpacer(),
+		// layout.NewSpacer(),
+		// layout.NewSpacer(),
+		widget.NewButton("Generate", func() {}),
+		layout.NewSpacer(),
+	)
 
 	return container_compose
 }
