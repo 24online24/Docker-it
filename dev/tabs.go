@@ -6,7 +6,6 @@ package main
 import (
 	"fmt"
 	"image/color"
-	"log"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -71,7 +70,7 @@ func createStartTab(cli *client.Client) *fyne.Container {
 func createComposeTab(cli *client.Client) *fyne.Container {
 
 	// nrOfServices := 0
-	nrOfServicesEntry := widget.NewEntry()
+	// nrOfServicesEntry := widget.NewEntry()
 	// nrOfServicesEntry.SetPlaceHolder("Number between 1s to 5m...")
 	// if nrOfServices == 0 {
 	// 	nrOfServicesEntry.Text = "1"
@@ -80,68 +79,104 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	// }
 	// nrOfServicesEntry.Validate()
 
-	forms := container.NewGridWithColumns(3)
+	// formsContainer := container.NewGridWithColumns(3)
+
+	type form struct {
+		content widget.Form
+	}
+	forms := []form{}
+
+	forms = append(forms, form{content: *widget.NewForm(
+		widget.NewFormItem("1", widget.NewEntry()),
+		widget.NewFormItem("2", widget.NewEntry()),
+	)})
+
+	forms = append(forms, form{content: *widget.NewForm(
+		widget.NewFormItem("3", widget.NewEntry()),
+		widget.NewFormItem("4", widget.NewEntry()),
+	)})
+
+	formsContainer := container.NewGridWithColumns(3)
+
+	for _, element := range forms {
+		formsContainer.Add(layout.NewSpacer())
+		formsContainer.Add(&element.content)
+		fmt.Println(element.content.Items[0].Text)
+	}
+
+	container_compose := formsContainer
+	// forms := []widget.NewForm(widget.NewFormItem("Text", widget.NewEntry()))
+	// fmt.Println(forms.Items[0].Text)
+	// forms := &widget.Form{W
+	// 	Items: []*widget.FormItem{
+	// 		{Text: "", Widget: widget.NewEntry()},
+	// 		{Text: "", Widget: widget.NewEntry()},
+	// 		{Text: "", Widget: widget.NewEntry()},
+	// 	},
+	// }
+
 	// form := widget.NewForm(widget.NewFormItem(""))
-	container_compose := container.NewVBox(
-		container.NewHBox(
-			widget.NewLabel("Number of services/ containers:"),
-			nrOfServicesEntry,
-			widget.NewButton("Create form", func() {
-				if nrOfServicesEntry.Text != "" {
 
-					nrOfServices, err := strconv.Atoi(nrOfServicesEntry.Text)
+	// container_compose := container.NewVBox(
+	// 	container.NewHBox(
+	// 		widget.NewLabel("Number of services/ containers:"),
+	// 		nrOfServicesEntry,
+	// 		widget.NewButton("Create form", func() {
+	// 			if nrOfServicesEntry.Text != "" {
 
-					if err != nil {
-						log.Fatal(err)
-					}
-					for i := 1; i <= nrOfServices; i++ {
-						// forms.Add(container.NewVBox(
-						// 	container.NewHBox(
-						// 		widget.NewLabel("Name of the service:"),
-						// 		widget.NewEntry(),
-						// 	),
-						// 	container.NewHBox(
-						// 		widget.NewLabel("Standard image or custom dockerfile:"),
-						// 		widget.NewEntry(),
-						// 	),
-						// 	container.NewHBox(
-						// 		widget.NewLabel("Name of the service"),
-						// 		widget.NewEntry(),
-						// 	),
-						// 	container.NewHBox(
-						// 		widget.NewCheck("Bind ports?", func(b bool) {}),
-						// 	),
-						// ))
-						forms.Add(widget.NewForm(
-							widget.NewFormItem(
-								"Name of the service:",
-								widget.NewEntry(),
-							),
-							widget.NewFormItem(
-								"Standard image or custom dockerfile:",
-								widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {}),
-							),
-							widget.NewFormItem(
-								"Name of image/ path to dockerfile folder:",
-								widget.NewEntry(),
-							),
-							widget.NewFormItem(
-								"How many bound ports do you want?",
-								widget.NewCheck("", func(b bool) {}),
-							),
-						))
-					}
-				}
-			}),
-		),
-		// layout.NewSpacer(),
-		forms,
-		// layout.NewSpacer(),
-		// layout.NewSpacer(),
-		// layout.NewSpacer(),
-		widget.NewButton("Generate", func() {}),
-		layout.NewSpacer(),
-	)
+	// 				nrOfServices, err := strconv.Atoi(nrOfServicesEntry.Text)
+
+	// 				if err != nil {
+	// 					log.Fatal(err)
+	// 				}
+	// 				for i := 1; i <= nrOfServices; i++ {
+	// 					// forms.Add(container.NewVBox(
+	// 					// 	container.NewHBox(
+	// 					// 		widget.NewLabel("Name of the service:"),
+	// 					// 		widget.NewEntry(),
+	// 					// 	),
+	// 					// 	container.NewHBox(
+	// 					// 		widget.NewLabel("Standard image or custom dockerfile:"),
+	// 					// 		widget.NewEntry(),
+	// 					// 	),
+	// 					// 	container.NewHBox(
+	// 					// 		widget.NewLabel("Name of the service"),
+	// 					// 		widget.NewEntry(),
+	// 					// 	),
+	// 					// 	container.NewHBox(
+	// 					// 		widget.NewCheck("Bind ports?", func(b bool) {}),
+	// 					// 	),
+	// 					// ))
+	// 					forms.Add(widget.NewForm(
+	// 						widget.NewFormItem(
+	// 							"Name of the service:",
+	// 							widget.NewEntry(),
+	// 						),
+	// 						widget.NewFormItem(
+	// 							"Standard image or custom dockerfile:",
+	// 							widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {}),
+	// 						),
+	// 						widget.NewFormItem(
+	// 							"Name of image/ path to dockerfile folder:",
+	// 							widget.NewEntry(),
+	// 						),
+	// 						widget.NewFormItem(
+	// 							"How many bound ports do you want?",
+	// 							widget.NewCheck("", func(b bool) {}),
+	// 						),
+	// 					))
+	// 				}
+	// 			}
+	// 		}),
+	// 	),
+	// 	// layout.NewSpacer(),
+	// 	forms,
+	// 	// layout.NewSpacer(),
+	// 	// layout.NewSpacer(),
+	// 	// layout.NewSpacer(),
+	// 	widget.NewButton("Generate", func() {}),
+	// 	layout.NewSpacer(),
+	// )
 
 	return container_compose
 }
