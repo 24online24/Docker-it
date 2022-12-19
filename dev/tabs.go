@@ -18,7 +18,7 @@ import (
 )
 
 func createStartTab(cli *client.Client) *fyne.Container {
-	start_title = canvas.NewText("GoDocker", color.Color(theme.PrimaryColor()))
+	start_title = canvas.NewText("DockerIT", color.Color(theme.PrimaryColor()))
 	start_title.TextSize = 50
 
 	dockerd_status := widget.NewLabel("")
