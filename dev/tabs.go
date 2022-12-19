@@ -31,6 +31,7 @@ func createStartTab(cli *client.Client) *fyne.Container {
 		}
 	})
 
+	start_button.Importance = widget.HighImportance
 	chDockerStarted := make(chan int)
 	go isDockerStarted(chDockerStarted)
 	go func() {
