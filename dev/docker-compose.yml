@@ -1,0 +1,5 @@
+services:
+    webserver:
+        image: nginx
+        ports:
+            - '82:80'
