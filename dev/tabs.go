@@ -32,6 +32,7 @@ func createStartTab(cli *client.Client) *fyne.Container {
 		}
 	})
 
+	start_button.Importance = widget.HighImportance
 	chDockerStarted := make(chan int)
 	go isDockerStarted(chDockerStarted)
 	go func() {
@@ -82,7 +83,7 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 
 	form := container.NewGridWithColumns(3)
 
-	container_compose := container.NewVBox(
+	container_compose := container.NewHBox(
 		container.NewVBox(
 			layout.NewSpacer(),
 			container.NewHBox(
@@ -103,7 +104,7 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 					}
 				}),
 			),
-			layout.NewSpacer(),
+			// layout.NewSpacer(),
 			// layout.NewSpacer(),
 			form,
 			// layout.NewSpacer(),

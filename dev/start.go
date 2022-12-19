@@ -82,7 +82,7 @@ func main() {
 	}
 
 	var a fyne.App = app.New()
-	var w fyne.Window = a.NewWindow("GoDocker")
+	var w fyne.Window = a.NewWindow("DockerIT")
 
 	tabs := container.NewAppTabs(container.NewTabItemWithIcon("Start", theme.HomeIcon(), createStartTab(cli)))
 
@@ -125,12 +125,11 @@ func main() {
 			a.Settings().SetTheme(&darker_than_my_soul{})
 			theme_color = s
 		case "light":
-			a.Settings().SetTheme(&white_theme{})
+			a.Settings().SetTheme(&myTheme{})
 			theme_color = s
 		}
 	})
 
-	// TODO set to prev selected theme
 	theme_select.SetSelected(theme_color)
 
 	terminal := widget.NewEntry()
