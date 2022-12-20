@@ -152,7 +152,7 @@ func main() {
 		}
 	}
 	rrate := widget.NewEntry()
-	rrate.SetPlaceHolder("Number between 1s to 5m...")
+	rrate.SetPlaceHolder("Number in seconds")
 	if refresh_rate == 0 {
 		rrate.Text = "1"
 	} else {
@@ -166,6 +166,7 @@ func main() {
 	tabs.Refresh()
 	w.SetIcon(theme.ComputerIcon())
 	w.SetContent(tabs)
+	go tabs.Refresh()
 	w.Resize(fyne.NewSize(1080, 720))
 	w.ShowAndRun()
 }
