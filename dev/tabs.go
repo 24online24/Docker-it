@@ -136,8 +136,7 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	}
 	go checkCompose()
 
-	container_compose := container.NewGridWithColumns(
-		2,
+	container_compose := container.NewHBox(
 		container.NewVBox(
 			form,
 			layout.NewSpacer(),

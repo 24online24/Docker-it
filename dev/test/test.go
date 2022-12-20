@@ -1,33 +1,24 @@
 package main
 
 import (
-	"fmt"
-	"log"
+	"image/color"
 
+	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
-	"fyne.io/fyne/v2/widget"
+	"fyne.io/fyne/v2/canvas"
+	"fyne.io/fyne/v2/container"
+	// "fyne.io/fyne/v2/layout"
 )
 
 func main() {
 	myApp := app.New()
-	myWindow := myApp.NewWindow("Form Widget")
+	myWindow := myApp.NewWindow("Border Layout")
 
-	entry := widget.NewEntry()
-	textArea := widget.NewMultiLineEntry()
-
-	form := &widget.Form{
-		Items: []*widget.FormItem{ // we can specify items in the constructor
-			{Text: "Entry", Widget: entry}},
-		OnSubmit: func() { // optional, handle form submission
-			log.Println("Form submitted:", entry.Text)
-			log.Println("multiline:", textArea.Text)
-			myWindow.Close()
-		},
-	}
-
-	fmt.Println(form.Items)
-	// we can also append items
-	form.Append("Text", textArea)
-	myWindow.SetContent(form)
+	top := canvas.NewText("top bar", color.White)
+	left := canvas.NewText("left", color.White)
+	middle := canvas.NewText("content", color.White)
+	content := container.NewBorder(top, nil, left, nil, middle)
+	myWindow.SetContent(content)
+	myWindow.Resize(fyne.NewSize(720, 480))
 	myWindow.ShowAndRun()
 }
