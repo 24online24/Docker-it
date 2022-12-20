@@ -80,9 +80,18 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	nameEntry := widget.NewEntry()
 	imageOrFileRadio := widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {})
 	namePathEntry := widget.NewEntry()
-	portsCheck := widget.NewCheck("", func(b bool) {})
 	hostPortEntry := widget.NewEntry()
 	containerPortEntry := widget.NewEntry()
+	portsCheck := widget.NewCheck("", func(b bool) {
+		if b {
+			hostPortEntry.Enable()
+			containerPortEntry.Enable()
+		} else {
+			hostPortEntry.Disable()
+			containerPortEntry.Disable()
+		}
+	})
+	portsCheck.SetChecked(true)
 	form := widget.NewForm(
 		widget.NewFormItem("Name of the service", nameEntry),
 		widget.NewFormItem("Image or dockerfile", imageOrFileRadio),
@@ -109,6 +118,12 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 			currentContainer.containerPort = "-"
 		}
 		containerList = append(containerList, currentContainer)
+		nameEntry.SetText("")
+		imageOrFileRadio.SetSelected("")
+		namePathEntry.SetText("")
+		portsCheck.SetChecked(true)
+		hostPortEntry.SetText("")
+		containerPortEntry.SetText("")
 	}
 
 	containerForChecking := container.NewVBox()
@@ -136,7 +151,8 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	}
 	go checkCompose()
 
-	container_compose := container.NewHBox(
+	container_compose := container.NewGridWithColumns(
+		2,
 		container.NewVBox(
 			form,
 			layout.NewSpacer(),
