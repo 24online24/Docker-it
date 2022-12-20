@@ -127,10 +127,9 @@ func main() {
 			a.Settings().SetTheme(&dark_plus{})
 			theme_color = s
 		case "light":
-			a.Settings().SetTheme(&myTheme{})
+			a.Settings().SetTheme(&white_theme{})
 			theme_color = s
 		}
-		w.Content().Refresh()
 	})
 
 	theme_select.SetSelected(theme_color)
@@ -144,6 +143,7 @@ func main() {
 	docker_e := widget.NewEntry()
 	if env == "linux" {
 		docker_e.SetPlaceHolder("This setting is for windows only :D")
+		docker_e.Disable()
 	} else {
 		if docker_path != "" {
 			docker_e.Text = docker_path
@@ -166,7 +166,6 @@ func main() {
 	tabs.Refresh()
 	w.SetIcon(theme.ComputerIcon())
 	w.SetContent(tabs)
-	go tabs.Refresh()
 	w.Resize(fyne.NewSize(1080, 720))
 	w.ShowAndRun()
 }

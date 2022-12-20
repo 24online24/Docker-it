@@ -34,9 +34,9 @@ func (m dark_plus) Size(name fyne.ThemeSizeName) float32 {
 	return theme.DefaultTheme().Size(name)
 }
 
-type myTheme struct{}
+type white_theme struct{}
 
-func (myTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
+func (white_theme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
 	switch c {
 	case theme.ColorNameBackground:
 		return color.NRGBA{R: 0xff, G: 0xff, B: 0xff, A: 0xff}
@@ -71,7 +71,7 @@ func (myTheme) Color(c fyne.ThemeColorName, v fyne.ThemeVariant) color.Color {
 	}
 }
 
-func (myTheme) Font(s fyne.TextStyle) fyne.Resource {
+func (white_theme) Font(s fyne.TextStyle) fyne.Resource {
 	if s.Monospace {
 		return theme.DefaultTheme().Font(s)
 	}
@@ -87,11 +87,11 @@ func (myTheme) Font(s fyne.TextStyle) fyne.Resource {
 	return theme.DefaultTheme().Font(s)
 }
 
-func (myTheme) Icon(n fyne.ThemeIconName) fyne.Resource {
+func (white_theme) Icon(n fyne.ThemeIconName) fyne.Resource {
 	return theme.DefaultTheme().Icon(n)
 }
 
-func (myTheme) Size(s fyne.ThemeSizeName) float32 {
+func (white_theme) Size(s fyne.ThemeSizeName) float32 {
 	switch s {
 	case theme.SizeNameCaptionText:
 		return 11
