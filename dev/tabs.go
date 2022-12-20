@@ -94,14 +94,21 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 
 	containerList := []containerInfo{}
 	form.OnSubmit = func() {
-		containerList = append(containerList, containerInfo{
+
+		currentContainer := containerInfo{
 			serviceName:   nameEntry.Text,
 			imageOrFile:   imageOrFileRadio.Selected,
 			nameOrPath:    namePathEntry.Text,
 			bindPorts:     portsCheck.Checked,
 			hostPort:      hostPortEntry.Text,
 			containerPort: containerPortEntry.Text,
-		})
+		}
+
+		if !currentContainer.bindPorts {
+			currentContainer.hostPort = "-"
+			currentContainer.containerPort = "-"
+		}
+		containerList = append(containerList, currentContainer)
 	}
 
 	containerForChecking := container.NewVBox()
@@ -111,20 +118,18 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 		for {
 			nrShown := len(containerForChecking.Objects) / reflect.TypeOf(containerInfo{}).NumField()
 			nrContainers := len(containerList)
-			// fmt.Println(nrShown, nrContainers)
 			for index := nrShown; index < nrContainers; index++ {
-				containerForChecking.Add(widget.NewLabel(containerList[index].serviceName))
-				containerForChecking.Add(widget.NewLabel(containerList[index].imageOrFile))
-				containerForChecking.Add(widget.NewLabel(containerList[index].nameOrPath))
+				containerForChecking.Add(widget.NewLabel("Service name: " + containerList[index].serviceName))
+				containerForChecking.Add(widget.NewLabel("Image/ custom file: " + containerList[index].imageOrFile))
+				containerForChecking.Add(widget.NewLabel("Image name/ file path: " + containerList[index].nameOrPath))
 
-				aux := "false"
 				if containerList[index].bindPorts {
-					aux = "true"
+					containerForChecking.Add(widget.NewLabel("Bind ports: true"))
+					containerForChecking.Add(widget.NewLabel("Host port: " + containerList[index].hostPort))
+					containerForChecking.Add(widget.NewLabel("Container port: " + containerList[index].containerPort))
+				} else {
+					containerForChecking.Add(widget.NewLabel("Bind ports: false"))
 				}
-
-				containerForChecking.Add(widget.NewLabel(aux))
-				containerForChecking.Add(widget.NewLabel(containerList[index].hostPort))
-				containerForChecking.Add(widget.NewLabel(containerList[index].containerPort))
 				containerForChecking.Add(canvas.NewLine(color.RGBA{128, 128, 128, 255}))
 			}
 		}
@@ -136,7 +141,6 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 		container.NewVBox(
 			form,
 			layout.NewSpacer(),
-			widget.NewButton("Check", checkCompose),
 			widget.NewButton("Generate", func() {
 				generateCompose(containerList)
 			}),
