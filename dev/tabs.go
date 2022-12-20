@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"image/color"
+	"reflect"
 	"strconv"
 
 	"fyne.io/fyne/v2"
@@ -13,6 +14,15 @@ import (
 	"fyne.io/fyne/v2/widget"
 	"github.com/docker/docker/client"
 )
+
+type containerInfo struct {
+	serviceName   string
+	imageOrFile   string
+	nameOrPath    string
+	bindPorts     bool
+	hostPort      string
+	containerPort string
+}
 
 func createStartTab(cli *client.Client) *fyne.Container {
 	start_title = canvas.NewText("DockerIT", color.Color(theme.PrimaryColor()))
@@ -82,45 +92,59 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 		widget.NewFormItem("Container port:", containerPortEntry),
 	)
 
-	serviceName := []string{}
-	imageOrFile := []string{}
-	nameOrPath := []string{}
-	bindPorts := []bool{}
-	hostPort := []string{}
-	containerPort := []string{}
-
-	// form.Append("Name of the service", nameEntry)
-	// form.Append("Image or dockerfile", imageOrFileRadio)
-	// form.Append("Name or path", namePathEntry)
-	// form.Append("Bind ports?", portsCheck)
-	// form.Append("Host port:", hostPortEntry)
-	// form.Append("Container port:", containerPortEntry)
-
+	containerList := []containerInfo{}
 	form.OnSubmit = func() {
-		serviceName = append(serviceName, nameEntry.Text)
-		imageOrFile = append(imageOrFile, imageOrFileRadio.Selected)
-		nameOrPath = append(nameOrPath, namePathEntry.Text)
-		bindPorts = append(bindPorts, portsCheck.Checked)
-		hostPort = append(hostPort, hostPortEntry.Text)
-		containerPort = append(containerPort, containerPortEntry.Text)
+
+		currentContainer := containerInfo{
+			serviceName:   nameEntry.Text,
+			imageOrFile:   imageOrFileRadio.Selected,
+			nameOrPath:    namePathEntry.Text,
+			bindPorts:     portsCheck.Checked,
+			hostPort:      hostPortEntry.Text,
+			containerPort: containerPortEntry.Text,
+		}
+
+		if !currentContainer.bindPorts {
+			currentContainer.hostPort = "-"
+			currentContainer.containerPort = "-"
+		}
+		containerList = append(containerList, currentContainer)
 	}
-	container_compose := container.NewGridWithColumns(
-		2,
+
+	containerForChecking := container.NewVBox()
+	verticalScrollingContainer := container.NewVScroll(containerForChecking)
+
+	checkCompose := func() {
+		for {
+			nrShown := len(containerForChecking.Objects) / reflect.TypeOf(containerInfo{}).NumField()
+			nrContainers := len(containerList)
+			for index := nrShown; index < nrContainers; index++ {
+				containerForChecking.Add(widget.NewLabel("Service name: " + containerList[index].serviceName))
+				containerForChecking.Add(widget.NewLabel("Image/ custom file: " + containerList[index].imageOrFile))
+				containerForChecking.Add(widget.NewLabel("Image name/ file path: " + containerList[index].nameOrPath))
+
+				if containerList[index].bindPorts {
+					containerForChecking.Add(widget.NewLabel("Bind ports: true"))
+					containerForChecking.Add(widget.NewLabel("Host port: " + containerList[index].hostPort))
+					containerForChecking.Add(widget.NewLabel("Container port: " + containerList[index].containerPort))
+				} else {
+					containerForChecking.Add(widget.NewLabel("Bind ports: false"))
+				}
+				containerForChecking.Add(canvas.NewLine(color.RGBA{128, 128, 128, 255}))
+			}
+		}
+	}
+	go checkCompose()
+
+	container_compose := container.NewHBox(
 		container.NewVBox(
 			form,
 			layout.NewSpacer(),
-			widget.NewButton("Check", func() {
-				fmt.Println(serviceName)
-				fmt.Println(imageOrFile)
-				fmt.Println(nameOrPath)
-				fmt.Println(bindPorts)
-				fmt.Println(hostPort)
-				fmt.Println(containerPort)
-			}),
 			widget.NewButton("Generate", func() {
-				generateCompose(serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
+				generateCompose(containerList)
 			}),
 		),
+		verticalScrollingContainer,
 	)
 
 	return container_compose

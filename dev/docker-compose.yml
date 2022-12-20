@@ -1,9 +1,11 @@
 services:
-    webserver:
+    server:
         image: nginx
         ports:
-            - '82:80'
+            - '81:80'
+    php:
+        image: ./phpfpm
     database:
-        image: ./mariadb
+        image: mariadb
         ports:
             - '3306:3306'
