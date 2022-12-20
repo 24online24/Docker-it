@@ -1,8 +1,5 @@
 package main
 
-// func placeholder() {
-// }
-
 import (
 	"fmt"
 	"image/color"
@@ -70,15 +67,20 @@ func createStartTab(cli *client.Client) *fyne.Container {
 
 func createComposeTab(cli *client.Client) *fyne.Container {
 
-	nrOfServicesEntry := widget.NewEntry()
-	// formsContainer := container.NewGridWithColumns(3)
-	form := widget.NewForm()
 	nameEntry := widget.NewEntry()
 	imageOrFileRadio := widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {})
 	namePathEntry := widget.NewEntry()
 	portsCheck := widget.NewCheck("", func(b bool) {})
 	hostPortEntry := widget.NewEntry()
 	containerPortEntry := widget.NewEntry()
+	form := widget.NewForm(
+		widget.NewFormItem("Name of the service", nameEntry),
+		widget.NewFormItem("Image or dockerfile", imageOrFileRadio),
+		widget.NewFormItem("Name or path", namePathEntry),
+		widget.NewFormItem("Bind ports?", portsCheck),
+		widget.NewFormItem("Host port:", hostPortEntry),
+		widget.NewFormItem("Container port:", containerPortEntry),
+	)
 
 	serviceName := []string{}
 	imageOrFile := []string{}
@@ -86,6 +88,13 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	bindPorts := []bool{}
 	hostPort := []string{}
 	containerPort := []string{}
+
+	// form.Append("Name of the service", nameEntry)
+	// form.Append("Image or dockerfile", imageOrFileRadio)
+	// form.Append("Name or path", namePathEntry)
+	// form.Append("Bind ports?", portsCheck)
+	// form.Append("Host port:", hostPortEntry)
+	// form.Append("Container port:", containerPortEntry)
 
 	form.OnSubmit = func() {
 		serviceName = append(serviceName, nameEntry.Text)
@@ -95,72 +104,23 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 		hostPort = append(hostPort, hostPortEntry.Text)
 		containerPort = append(containerPort, containerPortEntry.Text)
 	}
-	container_compose := container.NewVBox(
-		container.NewHBox(
-			widget.NewLabel("Number of services/ containers:"),
-			nrOfServicesEntry,
-			widget.NewButton("Create form", func() {
-				if nrOfServicesEntry.Text != "" {
-
-					// nrOfServices, err := strconv.Atoi(nrOfServicesEntry.Text)
-					// if err != nil {
-					// 	log.Fatal(err)
-					// }
-
-					// currentNrOfObjects := len(formsContainer.Objects)
-					// for i := 1; i <= nrOfServices-currentNrOfObjects; i++ {
-					// 	formsContainer.Add(widget.NewForm(
-					// 		widget.NewFormItem(
-					// 			"Name of the service:",
-					// 			widget.NewEntry(),
-					// 		),
-					// 		widget.NewFormItem(
-					// 			"Standard image or custom dockerfile:",
-					// 			widget.NewRadioGroup([]string{"Image", "Custom"}, func(s string) {}),
-					// 		),
-					// 		widget.NewFormItem(
-					// 			"Image name/ path to folder:",
-					// 			widget.NewEntry(),
-					// 		),
-					// 		widget.NewFormItem(
-					// 			"How many bound ports do you want?",
-					// 			widget.NewCheck("", func(b bool) {}),
-					// 		),
-					// 	))
-
-					// 	formsContainer.Add(widget.NewForm(widget.NewFormItem("Test", widget.NewEntry())))
-					// }
-
-					form.Append("Name of the service", nameEntry)
-					form.Append("Image or dockerfile", imageOrFileRadio)
-					form.Append("Name or path", namePathEntry)
-					form.Append("Bind ports?", portsCheck)
-					form.Append("Host port:", hostPortEntry)
-					form.Append("Container port:", containerPortEntry)
-
-				}
+	container_compose := container.NewGridWithColumns(
+		2,
+		container.NewVBox(
+			form,
+			layout.NewSpacer(),
+			widget.NewButton("Check", func() {
+				fmt.Println(serviceName)
+				fmt.Println(imageOrFile)
+				fmt.Println(nameOrPath)
+				fmt.Println(bindPorts)
+				fmt.Println(hostPort)
+				fmt.Println(containerPort)
+			}),
+			widget.NewButton("Generate", func() {
+				generateCompose(serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
 			}),
 		),
-		form,
-		layout.NewSpacer(),
-		widget.NewButton("Check", func() {
-			fmt.Println(serviceName)
-			fmt.Println(imageOrFile)
-			fmt.Println(nameOrPath)
-			fmt.Println(bindPorts)
-			fmt.Println(hostPort)
-			fmt.Println(containerPort)
-		}),
-		layout.NewSpacer(),
-		widget.NewButton("Generate", func() {
-			fmt.Println(serviceName)
-			fmt.Println(imageOrFile)
-			fmt.Println(nameOrPath)
-			fmt.Println(bindPorts)
-			fmt.Println(hostPort)
-			fmt.Println(containerPort)
-			generateCompose(serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
-		}),
 	)
 
 	return container_compose
