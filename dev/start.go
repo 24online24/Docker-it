@@ -130,7 +130,6 @@ func main() {
 			a.Settings().SetTheme(&myTheme{})
 			theme_color = s
 		}
-		w.Content().Refresh()
 	})
 
 	theme_select.SetSelected(theme_color)

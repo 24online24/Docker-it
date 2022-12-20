@@ -9,14 +9,14 @@ import (
 
 var space string = "    "
 
-func generateCompose(serviceName []string, imageOrFile []string, nameOrPath []string, bindPorts []bool, hostPort []string, containerPort []string) {
+func generateCompose(cIL []containerInfo) {
 
 	outputFile := createFile("docker-compose.yml")
 	defer outputFile.Close()
 
 	w := bufio.NewWriter(outputFile)
 
-	writeServices(outputFile, w, serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort)
+	writeServices(outputFile, w, cIL)
 
 }
 
@@ -32,21 +32,21 @@ func createFile(fileName string) *os.File {
 	return outputFile
 }
 
-func writeServices(outputFile *os.File, w *bufio.Writer, serviceName []string, imageOrFile []string, nameOrPath []string, bindPorts []bool, hostPort []string, containerPort []string) {
+func writeServices(outputFile *os.File, w *bufio.Writer, cIL []containerInfo) {
 	writeLine(outputFile, w, "services:\n")
 
-	nrServices := len(serviceName)
+	nrServices := len(cIL)
 
 	for i := 0; i < nrServices; i++ {
-		service(outputFile, w, serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort, i)
+		service(outputFile, w, cIL[i], i)
 	}
 }
 
-func service(outputFile *os.File, w *bufio.Writer, serviceName []string, imageOrFile []string, nameOrPath []string, bindPorts []bool, hostPort []string, containerPort []string, index int) {
+func service(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 
-	writeLine(outputFile, w, space+serviceName[index]+":\n")
-	writeContainer(outputFile, w, serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort, index)
-	ports(outputFile, w, serviceName, imageOrFile, nameOrPath, bindPorts, hostPort, containerPort, index)
+	writeLine(outputFile, w, space+cI.serviceName+":\n")
+	writeContainer(outputFile, w, cI, index)
+	ports(outputFile, w, cI, index)
 }
 
 func writeLine(outputFile *os.File, w *bufio.Writer, line string) {
@@ -55,27 +55,27 @@ func writeLine(outputFile *os.File, w *bufio.Writer, line string) {
 	w.Flush()
 }
 
-func writeContainer(outputFile *os.File, w *bufio.Writer, serviceName []string, imageOrFile []string, nameOrPath []string, bindPorts []bool, hostPort []string, containerPort []string, index int) {
+func writeContainer(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 	output := ""
 
-	switch imageOrFile[index] {
+	switch cI.imageOrFile {
 	case "Image":
-		output = strings.Repeat(space, 2) + "image: " + nameOrPath[index] + "\n"
+		output = strings.Repeat(space, 2) + "image: " + cI.nameOrPath + "\n"
 	case "Custom":
-		output = strings.Repeat(space, 2) + "image: " + nameOrPath[index] + "\n"
+		output = strings.Repeat(space, 2) + "image: " + cI.nameOrPath + "\n"
 	}
 	writeLine(outputFile, w, output)
 }
 
-func ports(outputFile *os.File, w *bufio.Writer, serviceName []string, imageOrFile []string, nameOrPath []string, bindPorts []bool, hostPort []string, containerPort []string, index int) {
+func ports(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 
-	if bindPorts[index] {
+	if cI.bindPorts {
 		output := strings.Repeat(space, 2) + "ports:\n"
 		writeLine(outputFile, w, output)
 
 		output = strings.Repeat(space, 3) + "- '"
-		output += hostPort[index] + ":"
-		output += containerPort[index]
+		output += cI.hostPort + ":"
+		output += cI.containerPort
 		output += "'\n"
 		writeLine(outputFile, w, output)
 	}
