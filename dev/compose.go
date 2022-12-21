@@ -2,7 +2,6 @@ package main
 
 import (
 	"bufio"
-	"log"
 	"os"
 	"strings"
 )
@@ -18,12 +17,6 @@ func generateCompose(cIL []containerInfo) {
 
 	writeServices(outputFile, w, cIL)
 
-}
-
-func handleError(err error) {
-	if err != nil {
-		log.Fatal(err)
-	}
 }
 
 func createFile(fileName string) *os.File {

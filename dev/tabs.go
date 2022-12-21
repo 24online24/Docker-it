@@ -166,7 +166,50 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	return container_compose
 }
 
-func createSettingsTab(cli *client.Client, theme_select *widget.Select, terminal *widget.Entry, docker_e *widget.Entry, rrate *widget.Entry) *fyne.Container {
+func createSettingsTab(cli *client.Client, a fyne.App) *fyne.Container {
+	theme_options := []string{"dark", "dark+", "light"}
+	theme_select := widget.NewSelect(theme_options, func(s string) {
+		switch s {
+		case "dark":
+			a.Settings().SetTheme(theme.DefaultTheme())
+			theme_color = s
+		case "dark+":
+			a.Settings().SetTheme(&dark_plus{})
+			theme_color = s
+		case "light":
+			a.Settings().SetTheme(&white_theme{})
+			theme_color = s
+		}
+	})
+
+	theme_select.SetSelected(theme_color)
+
+	terminal := widget.NewEntry()
+	if terminal_setting != "" {
+		terminal.Text = terminal_setting
+	} else {
+		terminal.SetPlaceHolder("Terminal path/executable goes here...")
+	}
+	docker_e := widget.NewEntry()
+	if env == "linux" {
+		docker_e.SetPlaceHolder("This setting is for windows only :D")
+		docker_e.Disable()
+	} else {
+		if docker_path != "" {
+			docker_e.Text = docker_path
+		} else {
+			docker_e.Text = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
+		}
+	}
+	rrate := widget.NewEntry()
+	rrate.SetPlaceHolder("Number in seconds")
+	if refresh_rate == 0 {
+		rrate.Text = "1"
+	} else {
+		rrate.Text = fmt.Sprint(refresh_rate)
+	}
+	rrate.Validate()
+
 	container_settings := container.NewHBox(
 		container.NewVBox(
 			layout.NewSpacer(),

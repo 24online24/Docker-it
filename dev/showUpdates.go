@@ -2,16 +2,32 @@ package main
 
 import (
 	"context"
+	"os/exec"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
 
 	"fyne.io/fyne/v2"
+	"fyne.io/fyne/v2/container"
+	"fyne.io/fyne/v2/theme"
 	"fyne.io/fyne/v2/widget"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
 	"github.com/docker/docker/client"
 )
+
+// Se adaugă la meniul aplicației ferestre care se actualizează constant în funcție de rata de împrospătare a setată.
+func updatingTabs(cli *client.Client, tabs *container.AppTabs, function func(ch chan *widget.Table, cli *client.Client), tabName string, index int) {
+	tabs.Append(container.NewTabItemWithIcon(tabName, theme.MenuIcon(), widget.NewLabel("")))
+	ch := make(chan *widget.Table)
+	go function(ch, cli)
+	go func() {
+		for table := range ch {
+			tabs.Items[index].Content = table
+		}
+	}()
+}
 
 func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 	for {
@@ -75,6 +91,43 @@ func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 		}
 		chContainers <- ContainersTable
 		time.Sleep(time.Second * time.Duration(refresh_rate))
+	}
+}
+
+func start_container(status string, data string) {
+	var cmd *exec.Cmd
+	if strings.Contains(status, "Up") {
+		if runtime.GOOS == "windows" {
+			if terminal_setting == "" {
+				cmd = exec.Command("cmd", "/c", "start", "cmd", "/c", "docker", "exec", "-ti", data, "/bin/bash")
+			} else {
+				rest := [5]string{"docker", "exec", "-ti", data, "/bin/bash"}
+				cmd_line := strings.Split(terminal_setting, " ")
+				for i := 0; i < 5; i++ {
+					cmd_line = append(cmd_line, rest[i])
+				}
+				cmd = exec.Command("powershell.exe", cmd_line...)
+
+			}
+		} else if runtime.GOOS == "linux" {
+			testcmd := exec.Command("command", "-v", "gnome-terminal")
+			testerr := testcmd.Run()
+			if testerr == nil {
+				cmd = exec.Command("gnome-terminal", "-e", "docker", "exec", "-ti", data, "/bin/bash")
+			} else {
+				testcmd := exec.Command("command", "-v", "konsole")
+				testerr := testcmd.Run()
+				if testerr == nil {
+					cmd = exec.Command("konsole", "-e", "docker", "exec", "-ti", data, "/bin/bash")
+				}
+			}
+		}
+		err := cmd.Run()
+		handleError(err)
+	} else {
+		cmd = exec.Command("docker", "start", data)
+		err := cmd.Run()
+		handleError(err)
 	}
 }
 

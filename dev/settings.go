@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -11,6 +10,7 @@ import (
 // TODO check for the file, if not available, create it and fill it with default values
 // validate null input as well
 
+// Citirea setărilor din fișierul în care sunt salvate. Dacă aceste nu există, va fi creat.
 func get_settings() {
 	dat, err := os.ReadFile(".settings")
 	if err != nil {
@@ -21,16 +21,12 @@ func get_settings() {
 		}
 		data_b := []byte(value)
 		fil.Write(data_b)
-		if err2 != nil {
-			log.Fatal(err2)
-		}
+		handleError(err2)
 		dat, _ = os.ReadFile(".settings")
 	}
 	str := strings.Split(string(dat), "\n")
 	refresh_rate, err = strconv.Atoi(strings.Trim(str[0], "\r"))
-	if err != nil {
-		log.Fatal(err)
-	}
+	handleError(err)
 	terminal_setting = strings.Trim(str[1], "\r")
 	theme_color = strings.Trim(str[2], "\r")
 	if env == "windows" {
@@ -52,9 +48,7 @@ func save_settings() {
 
 	err := os.WriteFile(".settings", data, 0)
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	handleError(err)
 
 	fmt.Println("Settings have been saved succesfully!")
 }
