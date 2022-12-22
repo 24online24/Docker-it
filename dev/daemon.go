@@ -38,8 +38,9 @@ func stop_daemon() {
 func check_daemon() bool {
 	cmd2 := exec.Command("docker", "ps")
 	out, err := cmd2.CombinedOutput()
+	fmt.Println(string(out))
 	if strings.Contains(string(out), "error during connect:") ||
-		strings.Contains(string(out), "Cannot connect to the Docker daemon.") {
+		strings.Contains(string(out), "Cannot connect to the Docker daemon") {
 		return false
 	}
 	if err != nil {
