@@ -2,6 +2,7 @@ package main
 
 import "strconv"
 
+// format seconds to nice time format
 func niceTimeFormat(seconds int) string {
 	var time string = ""
 	if seconds > 60 {
@@ -23,6 +24,7 @@ func niceTimeFormat(seconds int) string {
 	return time
 }
 
+// format bytes to nice size format
 func niceSizeFormat(bytes int) string {
 	var size string = ""
 	switch {

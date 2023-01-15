@@ -13,6 +13,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// returns a table with all the containers and their information
 func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"CONTAINER ID", "IMAGE", "COMMAND", "CREATED", "STATUS", "PORTS", "NAMES", "ACTION"}}
@@ -78,6 +79,7 @@ func showContainers(chContainers chan *widget.Table, cli *client.Client) {
 	}
 }
 
+// returns a table with all the images and their information
 func showImages(chImages chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"REPOSITORY", "TAG", "IMAGE ID", "CREATED", "SIZE"}}
@@ -121,6 +123,7 @@ func showImages(chImages chan *widget.Table, cli *client.Client) {
 	}
 }
 
+// returns a table with all the volumes and their information
 func showVolumes(chVolumes chan *widget.Table, cli *client.Client) {
 	for {
 		var data [][]string = [][]string{{"DRIVER", "VOLUME NAME"}}

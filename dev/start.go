@@ -17,13 +17,14 @@ import (
 	"github.com/docker/docker/client"
 )
 
-var env string
-var terminal_setting string = ""
-var refresh_rate int = 5
-var docker_path string = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe"
-var theme_color string = "dark+"
-var start_title *canvas.Text
+var env string                                                                   // operating system
+var terminal_setting string = ""                                                 // for custom terminal opening
+var refresh_rate int = 5                                                         // refresh rate in seconds
+var docker_path string = "C:\\Program Files\\Docker\\Docker\\Docker Desktop.exe" // path to docker desktop (windows only)
+var theme_color string = "dark+"                                                 // theme color
+var start_title *canvas.Text                                                     // title of start tab
 
+// get operating system
 func get_env() {
 	if runtime.GOOS == "windows" || runtime.GOOS == "linux" {
 		env = runtime.GOOS
@@ -33,6 +34,7 @@ func get_env() {
 	}
 }
 
+// function to open container terminal
 func start_container(status string, data string) {
 	var cmd *exec.Cmd
 	if strings.Contains(status, "Up") {
@@ -76,47 +78,51 @@ func start_container(status string, data string) {
 
 func main() {
 	get_env()
-	get_settings()
+	get_settings() // get settings from .settings file
 	fmt.Println("Running in " + env + " mode...")
-	cli, err := client.NewClientWithOpts(client.FromEnv)
+	cli, err := client.NewClientWithOpts(client.FromEnv) // docker sdk client
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	// initialize fyne app and window
 	var a fyne.App = app.New()
 	var w fyne.Window = a.NewWindow("DockerIT")
 
+	// create start tab
 	tabs := container.NewAppTabs(container.NewTabItemWithIcon("Start", theme.HomeIcon(), createStartTab(cli)))
 
+	// create containers tab
 	tabs.Append(container.NewTabItemWithIcon("Containers", theme.MenuIcon(), widget.NewLabel("")))
 	chContainers := make(chan *widget.Table)
-	go showContainers(chContainers, cli)
-	go func() {
+	go showContainers(chContainers, cli) // goroutine to show containers
+	go func() {                          // goroutine to update containers
 		for table := range chContainers {
 			tabs.Items[1].Content = table
 		}
 	}()
 
+	// create images tab
 	tabs.Append(container.NewTabItemWithIcon("Images", theme.MenuIcon(), widget.NewLabel("")))
 	chImages := make(chan *widget.Table)
-	go showImages(chImages, cli)
-	go func() {
+	go showImages(chImages, cli) // goroutine to show images
+	go func() {                  // goroutine to update images
 		for table := range chImages {
 			tabs.Items[2].Content = table
 		}
 	}()
 
+	// create volumes tab
 	tabs.Append(container.NewTabItemWithIcon("Volumes", theme.MenuIcon(), widget.NewLabel("")))
 	chVolumes := make(chan *widget.Table)
-	go showVolumes(chVolumes, cli)
-	go func() {
+	go showVolumes(chVolumes, cli) // goroutine to show volumes
+	go func() {                    // goroutine to update volumes
 		for table := range chVolumes {
 			tabs.Items[3].Content = table
 		}
 	}()
 
-	// container_compose := container.NewWithoutLayout()
-
+	// theme select widget
 	theme_options := []string{"dark", "dark+", "light"}
 	theme_select := widget.NewSelect(theme_options, func(s string) {
 		switch s {
@@ -132,14 +138,18 @@ func main() {
 		}
 	})
 
+	// selected theme from .settings file or default
 	theme_select.SetSelected(theme_color)
 
+	// termianl input widget
 	terminal := widget.NewEntry()
 	if terminal_setting != "" {
 		terminal.Text = terminal_setting
 	} else {
 		terminal.SetPlaceHolder("Terminal path/executable goes here...")
 	}
+
+	// docker path input widget (windows only)
 	docker_e := widget.NewEntry()
 	if env == "linux" {
 		docker_e.SetPlaceHolder("This setting is for windows only :D")
@@ -151,6 +161,8 @@ func main() {
 			docker_e.Text = "C:/Program Files/Docker/Docker/Docker Desktop.exe"
 		}
 	}
+
+	// refresh rate input widget
 	rrate := widget.NewEntry()
 	rrate.SetPlaceHolder("Number in seconds")
 	if refresh_rate == 0 {
@@ -160,7 +172,9 @@ func main() {
 	}
 	rrate.Validate()
 
+	// compose tab
 	tabs.Append(container.NewTabItemWithIcon("Compose", theme.FileIcon(), createComposeTab(cli)))
+	// settings tab
 	tabs.Append(container.NewTabItemWithIcon("Settings", theme.SettingsIcon(), createSettingsTab(cli, theme_select, terminal, docker_e, rrate)))
 	tabs.SetTabLocation(container.TabLocationTop)
 	tabs.Refresh()

@@ -9,6 +9,7 @@ import (
 
 var space string = "    "
 
+// generates docker-compose.yml file
 func generateCompose(cIL []containerInfo) {
 
 	outputFile := createFile("docker-compose.yml")
@@ -20,18 +21,21 @@ func generateCompose(cIL []containerInfo) {
 
 }
 
+// error handling function
 func handleError(err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
 }
 
+// creats file
 func createFile(fileName string) *os.File {
 	outputFile, err := os.Create(fileName)
 	handleError(err)
 	return outputFile
 }
 
+// writes services to docker-compose.yml file
 func writeServices(outputFile *os.File, w *bufio.Writer, cIL []containerInfo) {
 	writeLine(outputFile, w, "services:\n")
 
@@ -42,6 +46,7 @@ func writeServices(outputFile *os.File, w *bufio.Writer, cIL []containerInfo) {
 	}
 }
 
+// writes service to docker-compose.yml file
 func service(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 
 	writeLine(outputFile, w, space+cI.serviceName+":\n")
@@ -49,12 +54,14 @@ func service(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) 
 	ports(outputFile, w, cI, index)
 }
 
+// writes line to docker-compose.yml file
 func writeLine(outputFile *os.File, w *bufio.Writer, line string) {
 	_, err := w.WriteString(line)
 	handleError(err)
 	w.Flush()
 }
 
+// writes container to docker-compose.yml file
 func writeContainer(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 	output := ""
 
@@ -67,6 +74,7 @@ func writeContainer(outputFile *os.File, w *bufio.Writer, cI containerInfo, inde
 	writeLine(outputFile, w, output)
 }
 
+// writes ports to docker-compose.yml file
 func ports(outputFile *os.File, w *bufio.Writer, cI containerInfo, index int) {
 
 	if cI.bindPorts {

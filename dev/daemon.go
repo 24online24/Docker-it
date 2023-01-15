@@ -7,6 +7,7 @@ import (
 	"time"
 )
 
+// starts docker daemon
 func start_daemon() {
 	if env == "windows" {
 		cmd := exec.Command(docker_path)
@@ -20,6 +21,7 @@ func start_daemon() {
 	}
 }
 
+// stops docker daemon
 func stop_daemon() {
 	if check_daemon() {
 		if env == "windows" {
@@ -35,6 +37,7 @@ func stop_daemon() {
 	}
 }
 
+// checks if docker daemon is running
 func check_daemon() bool {
 	cmd2 := exec.Command("docker", "ps")
 	out, err := cmd2.CombinedOutput()
@@ -49,6 +52,7 @@ func check_daemon() bool {
 	return true
 }
 
+// checks if docker daemon is running
 func isDockerStarted(chDockerStarted chan int) {
 	x := 0
 	for {

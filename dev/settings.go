@@ -8,9 +8,7 @@ import (
 	"strings"
 )
 
-// TODO check for the file, if not available, create it and fill it with default values
-// validate null input as well
-
+// get settings from .settings file
 func get_settings() {
 	dat, err := os.ReadFile(".settings")
 	if err != nil {
@@ -43,6 +41,7 @@ func get_settings() {
 	fmt.Println("Settings have been imported succesfully!")
 }
 
+// save settings to .settings file
 func save_settings() {
 	val := fmt.Sprint(refresh_rate) + "\n" + terminal_setting + "\n" + theme_color + "\n"
 	if env == "windows" {

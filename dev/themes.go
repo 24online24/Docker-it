@@ -7,6 +7,8 @@ import (
 	"fyne.io/fyne/v2/theme"
 )
 
+// all the available themes
+
 type dark_plus struct{}
 
 var _ fyne.Theme = (*dark_plus)(nil)

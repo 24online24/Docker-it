@@ -15,6 +15,7 @@ import (
 	"github.com/docker/docker/client"
 )
 
+// struct that holds information about a container
 type containerInfo struct {
 	serviceName   string
 	imageOrFile   string
@@ -24,12 +25,14 @@ type containerInfo struct {
 	containerPort string
 }
 
+// creates the start tab
 func createStartTab(cli *client.Client) *fyne.Container {
 	start_title = canvas.NewText("DockerIT", color.Color(theme.PrimaryColor()))
 	start_title.TextSize = 50
 
 	dockerd_status := widget.NewLabel("")
 
+	// button to start/stop docker daemon
 	start_button := widget.NewButton("Start/Stop", func() {
 		if !check_daemon() {
 			start_daemon()
@@ -40,8 +43,8 @@ func createStartTab(cli *client.Client) *fyne.Container {
 
 	start_button.Importance = widget.HighImportance
 	chDockerStarted := make(chan int)
-	go isDockerStarted(chDockerStarted)
-	go func() {
+	go isDockerStarted(chDockerStarted) // goroutine to check if docker is running
+	go func() {                         // goroutine to update docker status
 		for running := range chDockerStarted {
 			if running == 3 {
 				dockerd_status.SetText("Docker is running! :)")
@@ -51,6 +54,7 @@ func createStartTab(cli *client.Client) *fyne.Container {
 		}
 	}()
 
+	// create the container for the start tab
 	container_start := container.NewVBox(
 		layout.NewSpacer(),
 		container.New(layout.NewCenterLayout(), start_title),
@@ -68,13 +72,13 @@ func createStartTab(cli *client.Client) *fyne.Container {
 			layout.NewSpacer(),
 		),
 		layout.NewSpacer(),
-		// container.New(layout.NewCenterLayout(), widget.NewLabel("Help")),
 		layout.NewSpacer(),
 	)
 
 	return container_start
 }
 
+// creates the compose tab
 func createComposeTab(cli *client.Client) *fyne.Container {
 
 	nameEntry := widget.NewEntry()
@@ -166,6 +170,7 @@ func createComposeTab(cli *client.Client) *fyne.Container {
 	return container_compose
 }
 
+// creates the settings tab
 func createSettingsTab(cli *client.Client, theme_select *widget.Select, terminal *widget.Entry, docker_e *widget.Entry, rrate *widget.Entry) *fyne.Container {
 	container_settings := container.NewHBox(
 		container.NewVBox(
@@ -199,7 +204,7 @@ func createSettingsTab(cli *client.Client, theme_select *widget.Select, terminal
 				layout.NewSpacer(),
 				layout.NewSpacer(),
 				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() {
+				widget.NewButtonWithIcon("Save", theme.DocumentSaveIcon(), func() { // get the settings and save them
 					refresh_rate, _ = strconv.Atoi(rrate.Text)
 					terminal_setting = terminal.Text
 					if env == "windows" {
@@ -208,7 +213,7 @@ func createSettingsTab(cli *client.Client, theme_select *widget.Select, terminal
 					save_settings()
 				}),
 				layout.NewSpacer(),
-				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() {
+				widget.NewButtonWithIcon("Cancel", theme.CancelIcon(), func() { // get the settings and save them
 					get_settings()
 					rrate.Text = fmt.Sprint(refresh_rate)
 					terminal.Text = terminal_setting
