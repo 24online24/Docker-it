@@ -2,6 +2,7 @@ executables/
 dev/settings
 **.psd
 **Docker-it
+**.yml
 # Binaries for programs and plugins
 *.exe
 *.exe~
